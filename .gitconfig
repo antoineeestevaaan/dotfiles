@@ -3,3 +3,8 @@
 [user]
 	email = antoine.stevaaan@gmail.com
 	name = antoineeestevaaan
+
+[credential "https://github.com"]
+	helper = !~/opt/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = !~/opt/bin/gh auth git-credential
