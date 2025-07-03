@@ -3,14 +3,14 @@ $env.config = {
     edit_mode  : vi,
     cursor_shape: {
         vi_insert: line,
-	vi_normal: block,
+        vi_normal: block,
     },
     table: {
         mode                : compact,
-	index_mode          : always,
-	show_empty          : true,
-	padding             : { left: 0, right: 0 },
-	header_on_separator : true,
+        index_mode          : always,
+        show_empty          : true,
+        padding             : { left: 0, right: 0 },
+        header_on_separator : true,
     },
     footer_mode: auto,
     datetime_format: {
@@ -39,7 +39,7 @@ use std formats [ "from ndjson", "to ndjson", "from ndnuon", "to ndnuon" ]
 export-env {
     def cmd [cmd: string]: [ nothing -> record<send: string, cmd: string> ] {{
         send: executehostcommand,
-	cmd: $cmd,
+        cmd: $cmd,
     }}
     def vi [--insert (-i), --normal (-n)]: [ nothing -> list<string> ] {
         match [$insert, $normal] {
@@ -52,6 +52,6 @@ export-env {
 
     $env.config.keybindings = [
         [ name   , modifier , keycode , mode     , event           ];
-	[ reload , alt      , char_r  , (vi -in) , (cmd "exec nu") ],
+        [ reload , alt      , char_r  , (vi -in) , (cmd "exec nu") ],
     ]
 }
