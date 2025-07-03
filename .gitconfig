@@ -8,3 +8,13 @@
 	helper = !~/opt/bin/gh auth git-credential
 [credential "https://gist.github.com"]
 	helper = !~/opt/bin/gh auth git-credential
+
+[alias]
+	s = status --short
+	c = commit --verbose
+	t = log --oneline --graph --decorate
+	p = push
+	f = fetch
+	r = rebase
+	d = diff
+	a = add
