@@ -1,10 +1,23 @@
-mkdir -p ~/downloads
+BIN="$HOME/opt/bin"
+TMP="/tmp"
+MAN="/usr/local/share/man/man1"
+DOWNLOADS="$HOME/downloads"
 
-curl -fLo ~/downloads/gh_2.74.2_linux_armv6.tar.gz https://github.com/cli/cli/releases/download/v2.74.2/gh_2.74.2_linux_armv6.tar.gz
+VERSION="2.74.2"
+ARCH="linux_armv6"
 
-tar xvf ~/downloads/gh_2.74.2_linux_armv6.tar.gz --directory /tmp
+ARCHIVE_WITHOUT_EXT="gh_${VERSION}_${ARCH}"
+ARCHIVE="${ARCHIVE_WITHOUT_EXT}.tar.gz"
+URL="https://github.com/cli/cli"
 
-cp /tmp/gh_2.74.2_linux_armv6/bin/gh ~/opt/bin/gh
+mkdir -p "$BIN"
+mkdir -p "$DOWNLOADS"
+mkdir -p "$TMP"
+sudo mkdir -p "$MAN"
 
-sudo mkdir -p /usr/local/share/man/man1
-sudo cp --verbose /tmp/gh_2.74.2_linux_armv6/share/man/man1/* /usr/local/share/man/man1
+curl -fLo "$DOWNLOADS/$ARCHIVE" "$URL/releases/download/v$VERSION/$ARCHIVE"
+tar xvf "$DOWNLOADS/$ARCHIVE" --directory "$TMP"
+cp "$TMP/$ARCHIVE_WITHOUT_EXT/bin/gh" "$BIN/gh"
+for f in $(find "$TMP/$ARCHIVE_WITHOUT_EXT/share/man/man1" -type f); do
+    sudo cp --verbose "$f" "$MAN"
+done
