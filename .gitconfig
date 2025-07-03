@@ -18,3 +18,8 @@
 	r = rebase
 	d = diff
 	a = add
+
+[status]
+	branch             = true
+	showStash          = true
+	showUntrackedFiles = all
