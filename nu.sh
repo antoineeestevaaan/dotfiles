@@ -1,14 +1,11 @@
-DOWNLOADS="$HOME/downloads"
-TMP="/tmp"
+BIN="$HOME/opt/bin"
 VERSION="0.105.1"
-ARCH="armv7-unknown-linux-gnueabihf"
+ARCH="arm-unknown-linux-gnueabihf"
 
-mkdir -p "$DOWNLOADS"
+mkdir -p "$BIN"
 
 NAME="nu-$VERSION-$ARCH"
-ARCHIVE="$NAME.tar.gz"
-URL="https://github.com/nushell/nushell"
+URL="https://raw.githubusercontent.com/amtoine/nushell-builds"
 
-curl -fLo "$DOWNLOADS/$ARCHIVE" "$URL/releases/download/$VERSION/$ARCHIVE"
-tar xvf "$DOWNLOADS/$ARCHIVE" --directory "$TMP"
-cp "$TMP/$NAME/nu" ~/opt/bin/nu
+curl -fLo "$BIN/nu" "$URL/refs/heads/main/$NAME"
+chmod +x "$BIN/nu"
