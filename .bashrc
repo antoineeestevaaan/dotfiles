@@ -1,5 +1,5 @@
 export PATH="$HOME/opt/bin:$PATH"
-export EDITOR="nvim -u NONE"
+export EDITOR="nvim"
 
 PROMPT_COMMAND=__prompt_command
 
