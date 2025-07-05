@@ -9,7 +9,7 @@ for f in $(find . -type f -not -path './.git/*' -not -path './sync.sh' -not -pat
     src="$(realpath $f)"
     dest="$HOME/$f"
 
-    echo "$MAGENTA$f$RESET -> $LIGHT_MAGENTA~/$f$RESET"
+    echo -e "$MAGENTA$f$RESET -> $LIGHT_MAGENTA~/$f$RESET"
     mkdir -p "$(dirname $dest)"
     ln --symbolic --force $src $dest
 done
