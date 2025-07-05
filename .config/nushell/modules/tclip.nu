@@ -1,0 +1,13 @@
+export const CLIPBOARD = $nu.temp-path | path join "clipboard.txt"
+
+export def clip []: [ any -> nothing ] {
+    tee { print } | to nuon | save --force $CLIPBOARD
+}
+
+export def paste [--raw (-r)]: [ nothing -> any ] {
+    if $raw {
+        open $CLIPBOARD
+    } else {
+        open $CLIPBOARD | from nuon
+    }
+}
