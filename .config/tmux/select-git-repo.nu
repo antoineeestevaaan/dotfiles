@@ -79,13 +79,14 @@ def get [
     }
 }
 
+logln ""
+logln $"[($env.CURRENT_FILE | path basename) | (date now | format date '%FT%T')]"
+
 let res = get -sA $TARGET --finder $FINDER
 if $res != null {
     let name = $"($res.host)($UCOLON)($res.group)/($res.project)"
         | str replace --all "." $UDOT
     let current = get-current-session
-    logln ""
-    logln $"SWITCH from ($current) to ($name)"
     if $current != $name {
         save-session $current
     }

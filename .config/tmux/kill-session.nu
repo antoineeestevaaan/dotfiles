@@ -1,8 +1,11 @@
 #!/usr/bin/env -S nu --no-config-file --no-std-lib
 
 use sessionizer.nu [
-    list-sessions, get-current-session, create-session, switch-to-session, kill-session
+    list-sessions, get-current-session, create-session, switch-to-session, kill-session, logln
 ]
+
+logln ""
+logln $"[($env.CURRENT_FILE | path basename) | (date now | format date '%FT%T')]"
 
 let current = get-current-session
 

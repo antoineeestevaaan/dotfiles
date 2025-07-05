@@ -3,5 +3,6 @@
 use sessionizer.nu [ logln, alternate-session ]
 
 logln ""
-logln "ALTERNATE"
+logln $"[($env.CURRENT_FILE | path basename) | (date now | format date '%FT%T')]"
+
 alternate-session
