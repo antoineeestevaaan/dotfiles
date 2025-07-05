@@ -57,3 +57,7 @@ export-env {
         [ reload , alt      , char_r  , (vi -in) , (cmd "exec nu") ],
     ]
 }
+
+const NU_LIB_DIRS = [
+    ($nu.default-config-dir | path join "modules")
+]
