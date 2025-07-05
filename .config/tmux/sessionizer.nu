@@ -70,3 +70,8 @@ export def "path shorten" []: [ string -> string ] {
         }
         | path join
 }
+
+export def kill-session [name: string] {
+    logln $"kill-session `($name)`"
+    ^tmux kill-session -t $name
+}
