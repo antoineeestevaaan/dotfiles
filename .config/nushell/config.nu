@@ -11,6 +11,10 @@ $env.config = {
         show_empty          : true,
         padding             : { left: 0, right: 0 },
         header_on_separator : true,
+        trim: {
+            methodology: "truncating",
+            truncating_suffix: "...",
+        },
     },
     footer_mode: auto,
     datetime_format: {
