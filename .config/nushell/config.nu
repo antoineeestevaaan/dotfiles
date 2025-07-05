@@ -34,8 +34,6 @@ $env.TRANSIENT_PROMPT_MULTILINE_INDICATOR  = ""
 
 $env.PATH = $env.PATH | prepend ("~/opt/bin" | path expand) | uniq
 
-use std formats [ "from ndjson", "to ndjson", "from ndnuon", "to ndnuon" ]
-
 export-env {
     def cmd [cmd: string]: [ nothing -> record<send: string, cmd: string> ] {{
         send: executehostcommand,
