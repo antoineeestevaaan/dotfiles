@@ -34,7 +34,7 @@ export def switch-to-session [name: string] {
     ^tmux switch-client -t $name
 }
 
-export def create-session [name: string, --path: path] {
+export def create-session [name: string, --path: path = $nu.home-path] {
     logln $"create-session `($name)`"
     ^tmux new-session -ds $name -c $path
 }
