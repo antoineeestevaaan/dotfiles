@@ -1,7 +1,7 @@
 #!/usr/bin/env -S nu --no-config-file --no-std-lib
 
 use sessionizer.nu [
-    list-sessions, get-current-session, switch-to-session, logln
+    list-sessions, get-current-session, switch-to-session, logln, save-session
 ]
 
 logln ""
@@ -19,5 +19,6 @@ let res = try {
     null
 }
 if $res != null and $res.name != current {
+    save-session $current
     switch-to-session $res.name
 }

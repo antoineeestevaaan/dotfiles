@@ -1,7 +1,7 @@
 #!/usr/bin/env -S nu --no-config-file --no-std-lib
 
 use sessionizer.nu [
-    list-sessions, get-current-session, create-session, switch-to-session, kill-session, logln
+    list-sessions, get-current-session, create-session, switch-to-session, kill-session, logln, save-session
 ]
 
 logln ""
@@ -22,6 +22,7 @@ if $res != null {
     if $res.name == $current {
         let name = random uuid | hash sha256
         create-session $name
+        save-session "__NOT_A_SESSION__"
         switch-to-session $name
     }
     kill-session $res.name
