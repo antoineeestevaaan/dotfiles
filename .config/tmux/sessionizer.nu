@@ -1,5 +1,5 @@
-const SESSION_FILE = $nu.home-path | path join ".local" "state" "tmux" "last-session"
-const     LOG_FILE = $nu.home-path | path join ".local" "state" "tmux" "log.txt"
+       const SESSION_FILE = $nu.home-path | path join ".local" "state" "tmux" "last-session"
+export const     LOG_FILE = $nu.home-path | path join ".local" "state" "tmux" "log.txt"
 
 export def log   [msg: string] { $"($msg)"   out>> $LOG_FILE }
 export def logln [msg: string] { $"($msg)\n" out>> $LOG_FILE }
