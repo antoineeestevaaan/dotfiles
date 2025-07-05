@@ -69,7 +69,7 @@ def get [
                     | update project { rpad $width.project | if $no_ansi { $in } else { str color "yellow"         } }
                     | $"($in.host) ($in.group) ($in.project)"
             }
-            | input list --fuzzy --display display
+            | input list --fuzzy --display display "Select a project to switch to:"
             | reject display
             | insert root $root
             | select root host group project
