@@ -20,3 +20,4 @@ __prompt_command() {
 
     PS1+="${RESET}${color}#${RESET} "
 }
+export MANPATH="$HOME/.local/share/man:$MANPATH"
