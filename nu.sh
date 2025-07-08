@@ -1,4 +1,7 @@
+#!/usr/bin/env bash
+
 BIN="$HOME/opt/bin"
+
 VERSION="0.105.1"
 ARCH="arm-unknown-linux-gnueabihf"
 

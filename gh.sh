@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 BIN="$HOME/opt/bin"
 TMP="/tmp"
 MAN="$HOME/.local/share/man/man1"
