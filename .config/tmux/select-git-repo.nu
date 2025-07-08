@@ -8,7 +8,7 @@ const UCOLON = char -u "2236"
 const UDOT   = char -u "2024"
 
 const TARGET = "~/documents" | path expand
-const FINDER = "~/opt/bin/find-git-repos-f8a0c5b5e8568c77ab45df8e659fdbaa81e0a32a0f0ad190d1b9832c881ed458"
+const FINDER = "~/opt/bin/find-git-repos-e96486f52751828ff5f8ebdfadacbd37cdb802afa559d098bbd59cac4df8b46d"
     | path expand
 
 def lpad [width: int, --character: string = " "]: [ string -> string ] { fill --alignment right --width $width --character $character }
