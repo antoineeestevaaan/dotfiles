@@ -37,6 +37,13 @@ $env.PROMPT_MULTILINE_INDICATOR            = ":::"
 $env.TRANSIENT_PROMPT_MULTILINE_INDICATOR  = ""
 
 $env.PATH = $env.PATH | prepend ("~/opt/bin" | path expand) | uniq
+$env.MANPATH = $env.MANPATH?
+    | default ""
+    | split row ":"
+    | where $it != ""
+    | prepend ($nu.home-path | path join ".local" "share" "man")
+    | uniq
+    | str join ":"
 
 export-env {
     def cmd [cmd: string]: [ nothing -> record<send: string, cmd: string> ] {{
