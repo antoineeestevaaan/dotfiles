@@ -1,8 +1,16 @@
        const SESSION_FILE = $nu.home-path | path join ".local" "state" "tmux" "last-session"
 export const     LOG_FILE = $nu.home-path | path join ".local" "state" "tmux" "log.txt"
 
-export def log   [msg: string] { $"($msg)"   out>> $LOG_FILE }
-export def logln [msg: string] { $"($msg)\n" out>> $LOG_FILE }
+def _log [msg: string] {
+    if not ($LOG_FILE | path dirname | path exists) {
+        mkdir ($LOG_FILE | path dirname)
+    }
+
+    $msg out>> $LOG_FILE
+}
+
+export def log   [msg: string] { _log $"($msg)"   }
+export def logln [msg: string] { _log $"($msg)\n" }
 
 export def get-current-session []: [ nothing -> string ] {
     ^tmux display-message -p '#{session_name}' | str trim
