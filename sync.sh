@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 RED="\e[31m"
 MAGENTA="\e[35m"
 LIGHT_MAGENTA="\e[95m"
