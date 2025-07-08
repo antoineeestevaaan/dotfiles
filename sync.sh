@@ -11,7 +11,9 @@ for f in $(find .              \
     -not -path './sync.sh'     \
     -not -path './gh.sh'       \
     -not -path './nu.sh'       \
+    -not -path './nvim.sh'     \
     -not -path './scripts/*'   \
+    -not -path '*.swp'         \
 ); do
     f="$(echo $f | cut -c 3-)"
 
