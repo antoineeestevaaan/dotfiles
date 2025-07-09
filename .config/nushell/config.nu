@@ -1,3 +1,5 @@
+$env.SHELL = $nu.current-exe
+
 $env.config = {
     show_banner: false,
     edit_mode  : vi,
