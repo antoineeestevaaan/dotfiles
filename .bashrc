@@ -1,4 +1,5 @@
 export PATH="$HOME/opt/bin:$PATH"
+export MANPATH="$HOME/.local/share/man:$MANPATH"
 export EDITOR="nvim"
 
 PROMPT_COMMAND=__prompt_command
@@ -20,4 +21,3 @@ __prompt_command() {
 
     PS1+="${RESET}${color}#${RESET} "
 }
-export MANPATH="$HOME/.local/share/man:$MANPATH"
