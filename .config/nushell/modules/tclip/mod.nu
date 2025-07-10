@@ -5,9 +5,13 @@ export def clip []: [ any -> nothing ] {
 }
 
 export def paste [--raw (-r)]: [ nothing -> any ] {
-    if $raw {
-        open $CLIPBOARD
-    } else {
-        open $CLIPBOARD | from nuon
+    try {
+        if $raw {
+            open $CLIPBOARD
+        } else {
+            open $CLIPBOARD | from nuon
+        }
+    } catch {
+        null
     }
 }
