@@ -70,3 +70,5 @@ export-env {
 const NU_LIB_DIRS = [
     ($nu.default-config-dir | path join "modules")
 ]
+
+alias which = which --all
