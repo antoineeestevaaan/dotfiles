@@ -1,5 +1,5 @@
 const HASH_PATTERN = '[0-9a-fA-F]+'
-const GIT_BRANCH_PATTERN = '[\w@\-_/]*'
+const GIT_BRANCH_PATTERN = '[\w@\-_/\.]*'
 
 def "regex capture" [pattern: string, --name (-n): string]: [ nothing -> string ] {
     if $name == null {
