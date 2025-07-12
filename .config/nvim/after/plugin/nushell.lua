@@ -3,7 +3,7 @@
 vim.opt.shell = "nu"
 vim.opt.shelltemp = false
 vim.opt.shellredir = "out+err> %s"
-vim.opt.shellcmdflag = "--stdin --no-newline -c"
+vim.opt.shellcmdflag = "--config ~/.config/nushell/config.nu --stdin --no-newline -c"
 vim.opt.shellxescape = ""
 vim.opt.shellxquote = ""
 vim.opt.shellquote = ""
