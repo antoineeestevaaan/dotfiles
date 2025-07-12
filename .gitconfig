@@ -23,3 +23,5 @@
 	branch             = true
 	showStash          = true
 	showUntrackedFiles = all
+[push]
+	autoSetupRemote = true
