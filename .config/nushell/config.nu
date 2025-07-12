@@ -3,7 +3,7 @@ $env.SHELL = $nu.current-exe
 $env.config = {
     show_banner: false,
     edit_mode  : vi,
-    cursor_shape: {
+    cursor_shape: {       # NOTE: looks like this does not work in a TTY
         vi_insert: line,
         vi_normal: block,
     },
