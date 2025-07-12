@@ -15,7 +15,7 @@ for f in $(find .                  \
     -not -path './nvim.sh'         \
     -not -path './scripts/*'       \
     -not -path '*.swp'             \
-    -not -path './.console-setup*' \
+    -not -path './@*'              \
 ); do
     f="$(echo $f | cut -c 3-)"
 
@@ -27,16 +27,16 @@ for f in $(find .                  \
     ln --symbolic --force $src $dest
 done
 
-for f in $(find .                \
-    -type f                      \
-    -name '.console-setup*'      \
+for f in $(find .     \
+    -type f           \
+    -path './@*'      \
 ); do
     f="$(echo $f | cut -c 3-)"
 
     src="$(realpath $f)"
-    dest="/root/$f"
+    dest="$(echo $f | sed 's/@/\//')"
 
-    echo -e "$RED$f$RESET -> $LIGHT_RED/root/$f$RESET"
-    mkdir -p "$(dirname $dest)"
+    echo -e "$RED$f$RESET -> $LIGHT_RED$dest$RESET"
+    sudo mkdir -p "$(dirname $dest)"
     sudo ln --symbolic --force $src $dest
 done
