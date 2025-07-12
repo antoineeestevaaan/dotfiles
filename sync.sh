@@ -6,7 +6,7 @@ MAGENTA="\e[35m"
 LIGHT_MAGENTA="\e[95m"
 RESET="\e[0m"
 
-pattern="${1-*}"
+pattern="${1:-*}"
 
 for f in $(find .                  \
     -type f                        \
