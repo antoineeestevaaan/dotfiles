@@ -6,8 +6,11 @@ MAGENTA="\e[35m"
 LIGHT_MAGENTA="\e[95m"
 RESET="\e[0m"
 
+pattern="${1-*}"
+
 for f in $(find .                  \
     -type f                        \
+    -path "*$pattern*"             \
     -not -path './.git/*'          \
     -not -path './sync.sh'         \
     -not -path './gh.sh'           \
