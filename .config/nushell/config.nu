@@ -38,14 +38,27 @@ $env.PROMPT_INDICATOR_VI_NORMAL            = "."
 $env.PROMPT_MULTILINE_INDICATOR            = ":::"
 $env.TRANSIENT_PROMPT_MULTILINE_INDICATOR  = ""
 
-$env.PATH = $env.PATH | prepend ("~/opt/bin" | path expand) | uniq
-$env.MANPATH = $env.MANPATH?
-    | default ""
-    | split row ":"
-    | where $it != ""
-    | prepend ($nu.home-path | path join ".local" "share" "man")
+$env.ENV_CONVERSIONS = $env.ENV_CONVERSIONS | merge {
+    "PATH": {
+        from_string : { split row (char esep)    | path expand --no-symlink }
+        to_string   : { path expand --no-symlink | str join (char esep)     }
+    }
+    "MANPATH": {
+        from_string : { split row (char esep)    | path expand --no-symlink             }
+        to_string   : { path expand --no-symlink | str join (char esep)     | $"($in):" }  # NOTE: MANPATH needs a trailing colon to work
+    }
+}
+
+$env.PATH = $env.PATH?
+    | default []
+    | prepend "~/opt/bin"
+    | path expand
     | uniq
-    | str join ":"
+$env.MANPATH = $env.MANPATH?
+    | default []
+    | prepend "~/.local/share/man"
+    | path expand
+    | uniq
 
 export-env {
     def cmd [cmd: string]: [ nothing -> record<send: string, cmd: string> ] {{
