@@ -49,16 +49,19 @@ $env.ENV_CONVERSIONS = $env.ENV_CONVERSIONS | merge {
     }
 }
 
-$env.PATH = $env.PATH?
-    | default []
-    | prepend "~/opt/bin"
-    | path expand
-    | uniq
-$env.MANPATH = $env.MANPATH?
-    | default []
-    | prepend "~/.local/share/man"
-    | path expand
-    | uniq
+do --env {
+    def prepend-to-paths-and-uniq [paths: list<path>, --env-var: string] {
+        $env
+            | get --ignore-errors $env_var
+            | default []
+            | prepend $paths
+            | path expand # FIXME: shouldn't be required ??
+            | uniq
+    }
+
+    $env.PATH    = prepend-to-paths-and-uniq --env-var PATH    [ "~/opt/bin" ]
+    $env.MANPATH = prepend-to-paths-and-uniq --env-var MANPATH [ "~/.local/share/man" ]
+}
 
 export-env {
     def cmd [cmd: string]: [ nothing -> record<send: string, cmd: string> ] {{
