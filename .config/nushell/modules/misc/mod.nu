@@ -1,3 +1,5 @@
+use conversions [ "maybe-into int", "maybe-into filesize" ]
+
 # wrapper around system's `make` command
 #
 #     use `help make` to show this help
@@ -54,4 +56,36 @@ export def "update-tty-font" [
         --font-only
         $variant
     ]
+}
+
+# a "fat" and structured wrapper around `df`
+export def df [--all (-a), --summary (-s)]: [ nothing -> table ] {
+    let options = [
+        ...(if $all and not $summary { [--all] } else { [] }),
+        --block-size=KiB
+        --output
+    ]
+
+    ^df ...$options
+        | detect columns --guess
+        | each {{
+            name: $in.Filesystem,
+            type: $in.Type,
+            inodes: {
+                total : ($in.Inodes | maybe-into int),
+                used  : ($in.IUsed  | maybe-into int),
+                free  : ($in.IFree  | maybe-into int),
+            },
+            memory: {
+                total : ($in.1KiB-blocks | maybe-into filesize),
+                used  : ($in.Used        | maybe-into filesize),
+                free  : ($in.Avail       | maybe-into filesize),
+            },
+            mount: $in."Mounted on",
+        }}
+        | if $summary {
+            sort-by mount | where $it.type != tmpfs and ($it.memory.total | default 0b) > 0b
+        } else {
+            $in
+        }
 }
