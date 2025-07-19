@@ -35,28 +35,33 @@ const NOT_CONFIG_FILE_PATTERN = [
     bootstrap.sh,
 ]
 
-export def link [--system, --dry-run] {
-    let config_files = find-files --strip-prefix       --exclude $NOT_CONFIG_FILE_PATTERN
-    let system_files = find-files --strip-prefix (pwd) --pattern $SYSTEM_FILE_PATTERN
+export def link [--config, --system, --dry-run] {
+    if $config or not $system {
+        log info $"gathering config files..."
+        let config_files = find-files --strip-prefix --exclude $NOT_CONFIG_FILE_PATTERN
 
-    log info $"linking config files to (ansi magenta)~(ansi reset)"
-    for src in $config_files {
-        if $dry_run {
-            log debug $"    (ansi default_dimmed)($src)(ansi reset)"
-        } else {
-            log debug $"    (ansi magenta)($src)(ansi reset)"
-        }
+        log info $"linking config files to (ansi magenta)~(ansi reset)"
+        for src in $config_files {
+            if $dry_run {
+                log debug $"    (ansi default_dimmed)($src)(ansi reset)"
+            } else {
+                log debug $"    (ansi magenta)($src)(ansi reset)"
+            }
 
-        let dest = $nu.home-path | path join $src
-        let src = $src | path expand
+            let dest = $nu.home-path | path join $src
+            let src = $src | path expand
 
-        if not $dry_run {
-            mkdir ($dest | path dirname)
-            ln --symbolic --force $src $dest
+            if not $dry_run {
+                mkdir ($dest | path dirname)
+                ln --symbolic --force $src $dest
+            }
         }
     }
 
-    if $system {
+    if $system or not $config {
+        log info $"gathering system files..."
+        let system_files = find-files --strip-prefix (pwd) --pattern $SYSTEM_FILE_PATTERN
+
         log warning $"linking system files to (ansi magenta)/(ansi reset)"
         for src in $system_files {
             if $dry_run {
