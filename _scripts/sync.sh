@@ -15,6 +15,8 @@ for f in $(find .                  \
     -not -path './_scripts/*'      \
     -not -path '*.swp'             \
     -not -path './@*'              \
+    -not -path './LICENSE'         \
+    -not -path './.editorconig'    \
 ); do
     f="$(echo $f | cut -c 3-)"
 
