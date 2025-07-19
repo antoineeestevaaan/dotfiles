@@ -15,6 +15,7 @@ for f in $(find .                  \
     -not -path './_scripts/*'      \
     -not -path '*.swp'             \
     -not -path './@*'              \
+    -not -path './README.md'       \
     -not -path './LICENSE'         \
     -not -path './.editorconig'    \
 ); do
