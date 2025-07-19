@@ -12,11 +12,7 @@ for f in $(find .                  \
     -type f                        \
     -path "*$pattern*"             \
     -not -path './.git/*'          \
-    -not -path './sync.sh'         \
-    -not -path './gh.sh'           \
-    -not -path './nu.sh'           \
-    -not -path './nvim.sh'         \
-    -not -path './scripts/*'       \
+    -not -path './_scripts/*'      \
     -not -path '*.swp'             \
     -not -path './@*'              \
 ); do
