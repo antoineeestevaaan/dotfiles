@@ -20,11 +20,11 @@ make link --config --system
 ```
 
 ## My software
-```bash
+```nushell
 make gh download-asset-from-release jesseduffield/horcrux v0.2 --no-gh --asset horcrux_0.2_Linux_armv6 --extract "/tmp/horcrux-0.2-armv6"
 cp --verbose ("/tmp/horcrux-0.2-armv6/horcrux" | path expand) ("~/opt/bin/horcrux" | path expand)
 ```
-```bash
+```nushell
 make gh download-asset-from-release cli/cli v2.74.2 --no-gh --asset gh_2.74.2_linux_armv6
 mkdir ("~/.local/share/man/man1" | path expand)
 cp --verbose ("/tmp/gh_2.74.2_linux_armv6/bin/gh" | path expand) ("~/opt/bin/gh" | path expand)
