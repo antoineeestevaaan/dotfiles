@@ -70,7 +70,7 @@ export def link [--config, --system, --dry-run] {
                 log debug $"    (ansi magenta)($src)(ansi reset)"
             }
 
-            let dest = $src | str replace --regex '^@' '/' | path expand
+            let dest = $src | str replace --regex '^@' '/'
             let src = $src | path expand
 
             if not $dry_run {
