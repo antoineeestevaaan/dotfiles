@@ -1,14 +1,49 @@
 #!/usr/bin/env bash
 
-BIN="$HOME/opt/bin"
+DEFAULT_BIN_DIR="$HOME/opt/bin"
 
-VERSION="0.105.1"
-ARCH="arm-unknown-linux-gnueabihf"
+usage() {
+    echo "Usage: $0 <Nushell version> [--bin <path> = $DEFAULT_BIN_DIR]"
+    exit 1
+}
 
-mkdir -p "$BIN"
+# argument parsing: start
+if [[ $# -lt 1 ]]; then
+    usage
+fi
 
-NAME="nu-$VERSION-$ARCH"
-URL="https://raw.githubusercontent.com/amtoine/nushell-builds"
+bin_dir="$DEFAULT_BIN_DIR"
+version="$1"
+shift
 
-curl -fLo "$BIN/nu" "$URL/refs/heads/main/$NAME"
-chmod +x "$BIN/nu"
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --bin)
+            shift
+            if [[ -z "$1" ]]; then
+                echo "Error: --bin requires a path argument"
+                usage
+            fi
+	    bin_dir=$(realpath "$1")
+        ;;
+        *)
+            echo "Error: unknown argument $1"
+            usage
+        ;;
+    esac
+    shift
+done
+# argument parsing: end
+
+arch=$(uname -m)
+
+case "$arch" in
+    aarch64) url="https://github.com/nushell/nushell/releases/download/$version/nu-$version-aarch64-unknown-linux-musl.tar.gz"       ;;
+    *)       url="https://raw.githubusercontent.com/amtoine/nushell-builds/refs/heads/main/nu-$version-arm-unknown-linux-gnueabihf" ;;
+esac
+
+mkdir -p "$bin_dir"
+
+echo "Downloading $url..."
+curl -fLo "$bin_dir/nu" "$url" || exit "$?"
+chmod +x "$bin_dir/nu"
