@@ -2,7 +2,7 @@ export SHELL="$0"
 
 export PATH="$HOME/opt/bin:$HOME/.cargo/bin:$PATH"
 export MANPATH="$HOME/.local/share/man:$MANPATH"
-export EDITOR="nvim"
+export EDITOR="editor.sh" # script from these dotfiles
 
 PROMPT_COMMAND=__prompt_command
 
