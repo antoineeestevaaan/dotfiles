@@ -169,6 +169,12 @@ export def "gh download-asset-from-release" [
             }
     }
 
+    let download_dir = $asset.local | path dirname
+    if not ($download_dir | path exists) {
+	log info $"creating ($download_dir)..."
+        mkdir ($download_dir)
+    }
+
     log info $"downloading ($asset.url)..."
     curl -fLo $asset.local $asset.url
 
