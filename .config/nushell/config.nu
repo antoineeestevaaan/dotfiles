@@ -59,7 +59,7 @@ do --env {
             | uniq
     }
 
-    $env.PATH    = prepend-to-paths-and-uniq --env-var PATH    [ "~/opt/bin" ]
+    $env.PATH    = prepend-to-paths-and-uniq --env-var PATH    [ "~/opt/bin", "~/.cargo/bin" ]
     $env.MANPATH = prepend-to-paths-and-uniq --env-var MANPATH [ "~/.local/share/man" ]
 }
 
