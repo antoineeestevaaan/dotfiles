@@ -1,6 +1,6 @@
 export SHELL="$0"
 
-export PATH="$HOME/opt/bin:$PATH"
+export PATH="$HOME/opt/bin:$HOME/.cargo/bin:$PATH"
 export MANPATH="$HOME/.local/share/man:$MANPATH"
 export EDITOR="nvim"
 
