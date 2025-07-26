@@ -87,6 +87,6 @@ const NU_LIB_DIRS = [
     ($nu.default-config-dir | path join "modules")
 ]
 
-$env.EDITOR = "nvim"
+$env.EDITOR = "editor.sh" # script from these dotfiles
 
 alias which = which --all
