@@ -98,7 +98,7 @@ export def --wrapped "git fetch" [...args: string] {
 #     use `git clone --help` to get the help of the wrapped `git clone`
 @example "clone to default location" { git clone https://github.com/antoineeestevaaan/dotfiles } --result "# cloned to ~/documents/github.com/antoineeestevaaan/dotfiles"
 @example "clone to custom location"  { git clone https://github.com/antoineeestevaaan/dotfiles ~/my_dir/my_repo }
-export def --wrapped "git clone" [repo: string, dest?: path, ...args: string] {
+export def --wrapped "git clone" [repo: string, dest?: path, ...args: string]: [ nothing -> path ] {
     let dest = $dest
         | default (
             if ($repo | str starts-with "-") {
@@ -109,4 +109,6 @@ export def --wrapped "git clone" [repo: string, dest?: path, ...args: string] {
         )
         | path expand
     ^git clone $repo $dest ...$args
+
+    $dest
 }
