@@ -24,7 +24,7 @@ while [[ $# -gt 0 ]]; do
                 echo "Error: --bin requires a path argument"
                 usage
             fi
-	    bin_dir=$(realpath "$1")
+            bin_dir=$(realpath "$1")
         ;;
         *)
             echo "Error: unknown argument $1"
