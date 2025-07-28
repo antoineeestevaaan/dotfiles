@@ -4,7 +4,7 @@ DEFAULT_BIN_DIR="$HOME/opt/bin"
 DEFAULT_INSTALL_METHOD="release"
 
 usage() {
-    echo "Usage: $0 <Nushell version> [--bin <path> = $DEFAULT_BIN_DIR]"
+    echo "Usage: $0 <Nushell version> [-bin <path> = $DEFAULT_BIN_DIR] [-cargo]"
     exit 1
 }
 
@@ -20,15 +20,15 @@ shift
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --bin)
+        -bin)
             shift
             if [[ -z "$1" ]]; then
-                echo "Error: --bin requires a path argument"
+                echo "Error: -bin requires a path argument"
                 usage
             fi
             bin_dir=$(realpath "$1")
         ;;
-        --cargo)
+        -cargo)
             shift
             install_method="cargo"
         ;;
