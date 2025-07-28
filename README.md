@@ -45,7 +45,7 @@ cp  build/find-git-repos-f74da46dd63b5118ab8cf499124a92902bfecc1b18609f9d6e32e39
 ```
 
 ```nushell
-use git * 
+use git *
 use misc "make"
 
 const OPT_DIR = $nu.home-path | path join opt

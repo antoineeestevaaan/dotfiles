@@ -11,9 +11,9 @@ let current = get-current-session
 
 let res = try {
     list-sessions
-        | wrap name 
-        | insert attached { $in.name == $current } 
-        | insert display { $"(if $in.attached { "*" } else { ' ' }) ($in.name)" } 
+        | wrap name
+        | insert attached { $in.name == $current }
+        | insert display { $"(if $in.attached { "*" } else { ' ' }) ($in.name)" }
         | input list --fuzzy --display display "Select a session to kill:"
 } catch {
     null
