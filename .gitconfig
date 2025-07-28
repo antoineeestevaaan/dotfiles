@@ -25,3 +25,5 @@
 	showUntrackedFiles = all
 [push]
 	autoSetupRemote = true
+[diff]
+	wsErrorHighlight = all
