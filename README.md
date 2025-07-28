@@ -27,6 +27,8 @@ yes | sudo apt install ...[
     ripgrep,
     fd-find,
     sd,
+    lm-sensors,
+    ttyplot,
 ]
 ```
 ```nushell
