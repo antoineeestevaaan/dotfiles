@@ -33,8 +33,7 @@ cp --verbose ("/tmp/gh_2.74.2_linux_armv6/share/man/man1/*" | into glob) ("~/.lo
 
 ```nushell
 use git *
-git clone https://github.com/antoineeestevaaan/find-git-repos
-cd ~/documents/github.com/antoineeestevaaan/find-git-repos
+cd (git clone https://github.com/antoineeestevaaan/find-git-repos)
 sudo apt install libssl-dev
 cc -o nob nob.c -lssl -lcrypto
 git checkout bbb78cc
