@@ -21,7 +21,7 @@ make link --config --system
 
 ## My software
 ```nushell
-sudo apt install ripgrep fd-find sd
+sudo apt install tmux tldr ripgrep fd-find sd
 ```
 ```nushell
 make gh download-asset-from-release jesseduffield/horcrux v0.2 --no-gh --asset horcrux_0.2_Linux_armv6 --extract "/tmp/horcrux-0.2-armv6"
