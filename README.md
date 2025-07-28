@@ -30,3 +30,14 @@ mkdir ("~/.local/share/man/man1" | path expand)
 cp --verbose ("/tmp/gh_2.74.2_linux_armv6/bin/gh" | path expand) ("~/opt/bin/gh" | path expand)
 cp --verbose ("/tmp/gh_2.74.2_linux_armv6/share/man/man1/*" | into glob) ("~/.local/share/man/man1" | path expand)
 ```
+
+```nushell
+use git *
+git clone https://github.com/antoineeestevaaan/find-git-repos
+cd ~/documents/github.com/antoineeestevaaan/find-git-repos
+sudo apt install libssl-dev
+cc -o nob nob.c -lssl -lcrypto
+git checkout bbb78cc
+./nob
+cp  build/find-git-repos-f74da46dd63b5118ab8cf499124a92902bfecc1b18609f9d6e32e395d8a44e10 ~/opt/bin/
+```
