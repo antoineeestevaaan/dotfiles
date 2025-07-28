@@ -1,7 +1,7 @@
 return {
   {
     'nvim-treesitter/nvim-treesitter',
-    enabled = false,
+    enabled = true,
     dependencies = {
       'nvim-treesitter/nvim-treesitter-textobjects',
       'nushell/tree-sitter-nu',
@@ -95,7 +95,7 @@ return {
 
   {
     "nvim-treesitter/nvim-treesitter-context",
-    enabled = false,
+    enabled = true,
     config = function()
       local tc = require("treesitter-context")
       tc.setup {

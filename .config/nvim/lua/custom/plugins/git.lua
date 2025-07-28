@@ -1,7 +1,7 @@
 return {
   {
     "tpope/vim-fugitive",
-    enabled = false,
+    enabled = true,
     dependencies = { 'tpope/vim-rhubarb' },
   },
 
