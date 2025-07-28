@@ -91,3 +91,12 @@ export def --wrapped "git fetch" [...args: string] {
         }),
     }
 }
+
+export def --wrapped "git clone" [repo: string, dest?: path, ...args: string] {
+    let dest = $dest
+        | default (
+            $nu.home-path | path join documents ($repo | url parse | [ $in.host, $in.path] | str join "")
+        )
+        | path expand
+    ^git clone $repo $dest ...$args
+}
