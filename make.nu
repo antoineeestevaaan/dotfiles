@@ -370,6 +370,7 @@ export def "install" [
                 [
                     $"use (pwd | path join .config nushell modules misc) \"make\""
                     $"use (pwd | path join make.nu)"
+                    $"use (pwd | path join log.nu) *"
                     $"let cache = \"($nu.home-path | path join .cache antoineeestevaaan doffiles ($entry.item.git | url parse | $in.host + $in.path))\""
                     "if not ($cache | path exists) {"
                     $"    git clone ($entry.item.git) $cache"
@@ -385,19 +386,28 @@ export def "install" [
                                 if not ($dep.item | check-field package --types [string] --cp $cp) { return }
                                 $dep.item | check-extra-fields [ kind, package ] --cp $cp
 
-                                $"yes | sudo apt install ($dep.item.package)"
+                                [
+                                    $"log info \"($'yes | sudo apt install ($dep.item.package)' | nu-highlight)\""
+                                    $"yes | sudo apt install ($dep.item.package)"
+                                ]
                             },
                             "release" | "build" => { log warning $"unsupported kind ($dep.item.kind) for dependencies at ($cp)"; return },
                             _ => { log warning $"unknown kind ($dep.item.kind) at ($cp)"; return },
                         }
-                    })
+                    } | flatten)
                     ...($entry.item.variables | items { |k, v|
                         $"let ($k) = ($v | expand-vars --root '.')"
                     })
-                    ...(if $entry.item.checkout? != null { [ $"git checkout ($entry.item.checkout)" ] } else { [] })
-                    ...($entry.item.build | each {
-                        $"($in | expand-vars --root '.')"
+                    ...(if $entry.item.checkout? != null {[
+                        $"log info \"running ($'git checkout ($entry.item.checkout)' | nu-highlight)\""
+                        $"git checkout ($entry.item.checkout)"
+                    ]} else {
+                        []
                     })
+                    ...($entry.item.build | each {[
+                        $"log info \"running ($in | expand-vars --root '.' | nu-highlight)\""
+                        $"($in | expand-vars --root '.')"
+                    ]} | flatten )
                     ...($entry.item.install | __install "." --cp $cp)
                 ]
             },
