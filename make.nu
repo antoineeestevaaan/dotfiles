@@ -14,17 +14,6 @@ def find-files [
         }
 }
 
-def __log [
-    level: string,
-    color: string,
-    msg: string,
-] {
-    print $"[(ansi $color)($level)(ansi reset)] ($msg)"
-}
-def "log debug"   [msg: string] { __log DBG default_dimmed $msg }
-def "log info"    [msg: string] { __log INF cyan           $msg }
-def "log warning" [msg: string] { __log WRN yellow         $msg }
-
 const SYSTEM_FILE_PATTERN = "@*/**"
 const NOT_CONFIG_FILE_PATTERN = [
     .git/**/*,
