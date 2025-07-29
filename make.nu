@@ -300,7 +300,11 @@ def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> 
     } | flatten
 }
 
-export def "install" [file?: path, --from-stdin]: [ any -> nothing ] {
+export def "install" [
+    file?: path,
+    --from-stdin,
+    --no-confirm (-y),
+]: [ any -> nothing ] {
     let install_scripts = if $from_stdin {
         $in
     } else {
@@ -406,9 +410,8 @@ export def "install" [file?: path, --from-stdin]: [ any -> nothing ] {
     for is in $install_scripts {
         print ($is | nu-highlight)
 
-        let res = [ no, yes ] | input list "Install ?"
-        if $res != "yes" {
-            continue
+        if not $no_confirm {
+            if ([ no, yes ] | input list "Install ?") != "yes" { continue }
         }
 
         let file = mktemp --tmpdir dotfiles.XXXXXXX
