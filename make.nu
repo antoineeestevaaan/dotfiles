@@ -364,10 +364,13 @@ export def "install" [file?: path, --from-stdin]: [ any -> nothing ] {
                 let entry = $entry | update item { default {} variables | default [] deps }
 
                 [
-                    $"use (pwd | path join .config nushell modules git) *"
                     $"use (pwd | path join .config nushell modules misc) \"make\""
                     $"use (pwd | path join make.nu)"
-                    $"cd \(git clone ($entry.item.git)\)"
+                    $"let cache = \"($nu.home-path | path join .cache antoineeestevaaan doffiles ($entry.item.git | url parse | $in.host + $in.path))\""
+                    "if not ($cache | path exists) {"
+                    $"    git clone ($entry.item.git) $cache"
+                    "}"
+                    "cd $cache"
                     ...($entry.item.deps | enumerate | each { |dep|
                         let cp = $cp | split cell-path | append [ "deps" $dep.index ] | into cell-path
 
