@@ -24,6 +24,7 @@ const NOT_CONFIG_FILE_PATTERN = [
     $SYSTEM_FILE_PATTERN,
     make.nu,
     bootstrap.sh,
+    applications.nuon,
 ]
 
 export def link [--config, --system, --dry-run] {
