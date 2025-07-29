@@ -1,3 +1,5 @@
+use log.nu *
+
 def find-files [
     root: path = ("." | path expand),
     --pattern: string = "**/*",
@@ -181,4 +183,232 @@ export def "gh download-asset-from-release" [
     log info $"extracting ($asset.local)..."
     mkdir $extract
     tar xvf $asset.local --directory $extract
+}
+
+def "todo"        [msg: string] { print $"("TODO" | str color red): ($msg)"        }
+def "unreachable" [msg: string] { print $"("UNREACHABLE" | str color red): ($msg)" }
+
+const OPT_DIR = "~/opt" | path expand
+const MAN1_DIR = "~/.local/share/man/man1" | path expand
+
+def check-field [field: string, --types: list<string>, --cp: cell-path]: [ record -> bool ] {
+    if ($in | get -i $field) == null {
+        if $cp != null {
+            log fatal $"missing field ($field) at ($cp)"
+        } else {
+            log fatal $"missing field ($field)"
+        }
+        return false
+    }
+
+    $in | if $types != null {
+        $in | get $field | describe --detailed | get type | if $in not-in $types {
+            if $cp != null {
+                log fatal $"expected field ($field) to be one of ($types), found ($in), at ($cp)"
+            } else {
+                log fatal $"expected field ($field) to be one of ($types), found ($in)"
+            }
+            return false
+        }
+    }
+
+    true
+}
+
+def check-extra-fields [fields: list<string>, --cp: cell-path]: [ record -> bool ] {
+    let extra = $in | columns | where $it not-in $fields
+    if not ($extra | is-empty) {
+        if $cp != null {
+            log warning $"extra fields ($extra | each { $"$.($in)" } | str join "") at ($cp)"
+        } else {
+            log warning $"extra fields ($extra | each { $"$.($in)" } | str join "")"
+        }
+        return false
+    }
+
+    true
+}
+
+def expand-vars [--root: string] {
+    $in
+        | str replace --all '$var::OPT_DIR' $'"($OPT_DIR)"'
+        | str replace --all '$var::ROOT' $root
+        | str replace --all '$var::' '$'
+}
+
+def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> list<string> ] {
+    if ($in | is-empty) {
+        log warning $"nothing to install at ($cp)"
+        return
+    }
+
+    let cp = $cp | split cell-path | append "install" | into cell-path
+
+    $in | enumerate | each { |i|
+        let cp = $cp | split cell-path | append $i.index | into cell-path
+
+        if not ($i.item | check-field kind --types [string] --cp $cp) { return [] }
+
+        match $i.item.kind {
+            "bin" => {
+                if not ($i.item | check-field path --types [string] --cp $cp) { return [] }
+                $i.item | check-extra-fields [ kind, path ] --cp $cp
+
+                let raw_src = $i.item.path | expand-vars --root $root
+                let src = if ($raw_src | str contains '|') {
+                    $"\(($raw_src)\)"
+                } else {
+                    $"\"($raw_src)\""
+                }
+
+                let dest = if ($raw_src | str contains '|') {
+                    $"\(\"($OPT_DIR)\" | path join bin \(($raw_src) | path basename\)\)"
+                } else {
+                    $"\"($OPT_DIR | path join bin ($raw_src | path basename))\""
+                }
+                [
+                    $"mkdir ($OPT_DIR)",
+                    $"cp --verbose ($src) ($dest)",
+                ]
+            },
+            "man" => {
+                if not ($i.item | check-field pages --types [list] --cp $cp) { return [] }
+                $i.item | check-extra-fields [ kind, pages ] --cp $cp
+
+                [
+                    $"mkdir ($MAN1_DIR)"
+                    ...($i.item.pages | each { |it|
+                        let src_glob = $it | expand-vars --root $root
+                        let dest = $MAN1_DIR
+                        $"cp --verbose \(\"($src_glob)\" | into glob\) \"($dest)\""
+                    })
+                ]
+            },
+            "link" => {
+                if not ($i.item | check-field path --types [string] --cp $cp) { return [] }
+                $i.item | check-extra-fields [ kind, path ] --cp $cp
+
+                let raw_src = $i.item.path | expand-vars --root $root
+                let src = if ($raw_src | str contains '|') {
+                    $"\(($raw_src)\)"
+                } else {
+                    $"\"($raw_src)\""
+                }
+
+                let dest = if ($raw_src | str contains '|') {
+                    $"\(\"($OPT_DIR)\" | path join \(($raw_src) | path basename\)\)"
+                } else {
+                    $"\"($OPT_DIR | path join ($raw_src | path basename))\""
+                }
+                [
+                    $"mkdir ($OPT_DIR)",
+                    $"ln --force --symbolic ($src) ($dest)",
+                ]
+            }
+            _ => { log warning $"unkown kind ($i.item.kind) at ($cp)"; return [] },
+        }
+    } | flatten
+}
+
+export def "install" [file?: path, --from-stdin]: [ any -> nothing ] {
+    let install_scripts = if $from_stdin {
+        $in
+    } else {
+        if $file == null {
+            log fatal $"missing file argument"
+            return
+        }
+        if not ($file | path exists) {
+            log fatal $"($file): no such file or directory"
+            return
+        }
+        open $file
+    } | enumerate | each { |entry|
+        let cp = [$entry.index] | into cell-path
+
+        if not ($entry.item | check-field kind --types [string] --cp $cp) { return }
+
+        let lines = match $entry.item.kind {
+            "apt" => {
+                if not ($entry.item | check-field package --types [string] --cp $cp) { return }
+                $entry.item | check-extra-fields [ kind, package ] --cp $cp
+
+                $"yes | sudo apt install ($entry.item.package)"
+            },
+            "release" => {
+                if not ($entry.item | check-field host    --types [string]      --cp $cp) { return }
+                if not ($entry.item | check-field name    --types [string]      --cp $cp) { return }
+                if not ($entry.item | check-field tag     --types [string]      --cp $cp) { return }
+                if not ($entry.item | check-field asset   --types [string]      --cp $cp) { return }
+                if not ($entry.item | check-field install --types [list, table] --cp $cp) { return }
+                $entry.item | check-extra-fields [ kind, host, name, tag, asset, install, inner ] --cp $cp
+
+                let entry = $entry | update item { default true inner }
+
+                let pull = match $entry.item.host {
+                    "github.com" => {
+                        let extract = if $entry.item.inner {
+                            "$nu.temp-path"
+                        } else {
+                            $"$nu.temp-path | path join ($entry.item.asset)"
+                        }
+                        $"make gh download-asset-from-release ($entry.item.name) ($entry.item.tag) --no-gh --asset ($entry.item.asset) --extract \(($extract)\)"
+                    },
+                    _ => { log error $"unknow host ($entry.item.host) at ($cp)"; return },
+                }
+
+                [
+                    $"use (pwd | path join .config nushell modules git) *"
+                    $"use (pwd | path join .config nushell modules misc) \"make\""
+                    $"use (pwd | path join make.nu)"
+                    $pull,
+                    ...($entry.item.install | __install ($nu.temp-path | path join $entry.item.asset) --cp $cp)
+                ]
+            },
+            "build" => {
+                if not ($entry.item | check-field git     --types [string]      --cp $cp) { return }
+                if not ($entry.item | check-field build   --types [list]        --cp $cp) { return }
+                if not ($entry.item | check-field install --types [list, table] --cp $cp) { return }
+                $entry.item | check-extra-fields [ kind, git, build, install, variables, deps, checkout ] --cp $cp
+
+                let entry = $entry | update item { default {} variables | default [] deps }
+
+                [
+                    $"use (pwd | path join .config nushell modules git) *"
+                    $"use (pwd | path join .config nushell modules misc) \"make\""
+                    $"use (pwd | path join make.nu)"
+                    $"cd \(git clone ($entry.item.git)\)"
+                    ...($entry.item.deps | enumerate | each { |dep|
+                        let cp = $cp | split cell-path | append [ "deps" $dep.index ] | into cell-path
+
+                        if not ($dep.item | check-field kind --types [string] --cp $cp) { return }
+
+                        match $dep.item.kind {
+                            "apt" => {
+                                if not ($dep.item | check-field package --types [string] --cp $cp) { return }
+                                $dep.item | check-extra-fields [ kind, package ] --cp $cp
+
+                                $"yes | sudo apt install ($dep.item.package)"
+                            },
+                            "release" | "build" => { log warning $"unsupported kind ($dep.item.kind) for dependencies at ($cp)"; return },
+                            _ => { log warning $"unknown kind ($dep.item.kind) at ($cp)"; return },
+                        }
+                    })
+                    ...($entry.item.variables | items { |k, v|
+                        $"let ($k) = ($v | expand-vars --root '.')"
+                    })
+                    ...(if $entry.item.checkout? != null { [ $"git checkout ($entry.item.checkout)" ] } else { [] })
+                    ...($entry.item.build | each {
+                        $"($in | expand-vars --root '.')"
+                    })
+                    ...($entry.item.install | __install "." --cp $cp)
+                ]
+            },
+            _ => { log warning $"unknown kind ($entry.item.kind) at ($cp)"; return },
+        }
+
+        $lines | str join "\n"
+    }
+
+    print ($install_scripts | table -e)
 }
