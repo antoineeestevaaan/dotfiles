@@ -400,5 +400,17 @@ export def "install" [file?: path, --from-stdin]: [ any -> nothing ] {
         $lines | str join "\n"
     }
 
-    print ($install_scripts | table -e)
+    for is in $install_scripts {
+        print ($is | nu-highlight)
+
+        let res = [ no, yes ] | input list "Install ?"
+        if $res != "yes" {
+            continue
+        }
+
+        let file = mktemp --tmpdir dotfiles.XXXXXXX
+        $is | save --force $file
+
+        ^$nu.current-exe -I (pwd | path join .config nushell modules) $file
+    }
 }
