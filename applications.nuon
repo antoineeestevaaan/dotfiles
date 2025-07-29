@@ -15,7 +15,7 @@
         install: [
             {
                 kind: "bin",
-                path: "horcrux",
+                path: "$var::ROOT/horcrux",
             },
         ],
     },
@@ -29,11 +29,11 @@
         install: [
             {
                 kind: "bin",
-                path: "bin/gh",
+                path: "$var::ROOT/bin/gh",
             },
             {
                 kind: "man",
-                pages: [ "share/man/man1/*" ],
+                pages: [ "$var::ROOT/share/man/man1/*" ],
             },
         ]
     },
@@ -51,7 +51,7 @@
         install: [
             {
                 kind: "bin",
-                path: "build/find-git-repos-f74da46dd63b5118ab8cf499124a92902bfecc1b18609f9d6e32e395d8a44e10",
+                path: "$var::ROOT/build/find-git-repos-f74da46dd63b5118ab8cf499124a92902bfecc1b18609f9d6e32e395d8a44e10",
             },
         ],
     },
@@ -63,7 +63,7 @@
         ],
         checkout: "nightly",
         variables: {
-            nvim_install_dir: '$var::_OPT_DIR | path join $"nvim-(git rev-parse HEAD)"'
+            nvim_install_dir: '$var::OPT_DIR | path join $"nvim-(git rev-parse HEAD)"'
         },
         build: [
             'make -V { CMAKE_BUILD_TYPE: Release }',
