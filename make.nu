@@ -1,4 +1,5 @@
 use log.nu *
+use std repeat
 
 def find-files [
     root: path = ("." | path expand),
@@ -219,11 +220,19 @@ def check-extra-fields [fields: list<string>, --cp: cell-path]: [ record -> bool
     true
 }
 
-def expand-vars [--root: string] {
+def expand-vars [--root: string]: [ string -> string ] {
     $in
         | str replace --all '$var::OPT_DIR' $'"($OPT_DIR)"'
         | str replace --all '$var::ROOT' $root
         | str replace --all '$var::' '$'
+}
+
+def "cmd log" [cmd: string, --indent: int = 4, --indent-level: int = 0]: [ nothing -> list<string> ] {
+    let indentation = " " | repeat (($indent_level + 1) * $indent) | str join ""
+    [
+        $"($indentation)log info \"($cmd | str trim | nu-highlight)\""
+        $cmd
+    ]
 }
 
 def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> list<string> ] {
@@ -257,8 +266,8 @@ def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> 
                     $"\"($OPT_DIR | path join bin ($raw_src | path basename))\""
                 }
                 [
-                    $"mkdir ($OPT_DIR)",
-                    $"cp --verbose ($src) ($dest)",
+                    ...(cmd log $"mkdir ($OPT_DIR)"),
+                    ...(cmd log $"cp --verbose ($src) ($dest)"),
                 ]
             },
             "man" => {
@@ -266,12 +275,12 @@ def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> 
                 $i.item | check-extra-fields [ kind, pages ] --cp $cp
 
                 [
-                    $"mkdir ($MAN1_DIR)"
+                    ...(cmd log $"mkdir ($MAN1_DIR)")
                     ...($i.item.pages | each { |it|
                         let src_glob = $it | expand-vars --root $root
                         let dest = $MAN1_DIR
-                        $"cp --verbose \(\"($src_glob)\" | into glob\) \"($dest)\""
-                    })
+                        cmd log $"cp --verbose \(\"($src_glob)\" | into glob\) \"($dest)\""
+                    } | flatten)
                 ]
             },
             "link" => {
@@ -291,11 +300,11 @@ def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> 
                     $"\"($OPT_DIR | path join ($raw_src | path basename))\""
                 }
                 [
-                    $"mkdir ($OPT_DIR)",
-                    $"ln --force --symbolic ($src) ($dest)",
+                    ...(cmd log $"mkdir ($OPT_DIR)"),
+                    ...(cmd log $"ln --force --symbolic ($src) ($dest)"),
                 ]
             }
-            _ => { log warning $"unkown kind ($i.item.kind) at ($cp)"; return [] },
+            _ => { log warning $"unknown kind ($i.item.kind) at ($cp)"; return [] },
         }
     } | flatten
 }
@@ -327,7 +336,10 @@ export def "install" [
                 if not ($entry.item | check-field package --types [string] --cp $cp) { return }
                 $entry.item | check-extra-fields [ kind, package ] --cp $cp
 
-                $"yes | sudo apt install ($entry.item.package)"
+                [
+                    $"use (pwd | path join log.nu) *"
+                    ...(cmd log $"yes | sudo apt install ($entry.item.package)")
+                ]
             },
             "release" => {
                 if not ($entry.item | check-field host    --types [string]      --cp $cp) { return }
@@ -346,16 +358,15 @@ export def "install" [
                         } else {
                             $"$nu.temp-path | path join ($entry.item.asset)"
                         }
-                        $"make gh download-asset-from-release ($entry.item.name) ($entry.item.tag) --no-gh --asset ($entry.item.asset) --extract \(($extract)\)"
+                        cmd log $"make gh download-asset-from-release ($entry.item.name) ($entry.item.tag) --no-gh --asset ($entry.item.asset) --extract \(($extract)\)"
                     },
-                    _ => { log error $"unknow host ($entry.item.host) at ($cp)"; return },
+                    _ => { log error $"unknown host ($entry.item.host) at ($cp)"; return },
                 }
 
                 [
-                    $"use (pwd | path join .config nushell modules git) *"
-                    $"use (pwd | path join .config nushell modules misc) \"make\""
                     $"use (pwd | path join make.nu)"
-                    $pull,
+                    $"use (pwd | path join log.nu) *"
+                    ...$pull,
                     ...($entry.item.install | __install ($nu.temp-path | path join $entry.item.asset) --cp $cp)
                 ]
             },
@@ -367,15 +378,22 @@ export def "install" [
 
                 let entry = $entry | update item { default {} variables | default [] deps }
 
+                let cache = [
+                    $nu.home-path
+                    .cache
+                    antoineeestevaaan
+                    doffiles
+                    ($entry.item.git | url parse | $in.host + $in.path)
+                ] | path join
+
                 [
                     $"use (pwd | path join .config nushell modules misc) \"make\""
                     $"use (pwd | path join make.nu)"
                     $"use (pwd | path join log.nu) *"
-                    $"let cache = \"($nu.home-path | path join .cache antoineeestevaaan doffiles ($entry.item.git | url parse | $in.host + $in.path))\""
-                    "if not ($cache | path exists) {"
-                    $"    git clone ($entry.item.git) $cache"
+                    $"if not \(\"($cache)\" | path exists\) {"
+                    ...(cmd log $"    git clone ($entry.item.git) ($cache)")
                     "}"
-                    "cd $cache"
+                    ...(cmd log $"cd ($cache)")
                     ...($entry.item.deps | enumerate | each { |dep|
                         let cp = $cp | split cell-path | append [ "deps" $dep.index ] | into cell-path
 
@@ -386,10 +404,7 @@ export def "install" [
                                 if not ($dep.item | check-field package --types [string] --cp $cp) { return }
                                 $dep.item | check-extra-fields [ kind, package ] --cp $cp
 
-                                [
-                                    $"log info \"($'yes | sudo apt install ($dep.item.package)' | nu-highlight)\""
-                                    $"yes | sudo apt install ($dep.item.package)"
-                                ]
+                                cmd log $"yes | sudo apt install ($dep.item.package)"
                             },
                             "release" | "build" => { log warning $"unsupported kind ($dep.item.kind) for dependencies at ($cp)"; return },
                             _ => { log warning $"unknown kind ($dep.item.kind) at ($cp)"; return },
@@ -398,16 +413,14 @@ export def "install" [
                     ...($entry.item.variables | items { |k, v|
                         $"let ($k) = ($v | expand-vars --root '.')"
                     })
-                    ...(if $entry.item.checkout? != null {[
-                        $"log info \"running ($'git checkout ($entry.item.checkout)' | nu-highlight)\""
-                        $"git checkout ($entry.item.checkout)"
-                    ]} else {
+                    ...(if $entry.item.checkout? != null {
+                        cmd log $"git checkout ($entry.item.checkout)"
+                    } else {
                         []
                     })
-                    ...($entry.item.build | each {[
-                        $"log info \"running ($in | expand-vars --root '.' | nu-highlight)\""
-                        $"($in | expand-vars --root '.')"
-                    ]} | flatten )
+                    ...($entry.item.build | each {
+                        cmd log $"($in | expand-vars --root '.')"
+                    } | flatten )
                     ...($entry.item.install | __install "." --cp $cp)
                 ]
             },
@@ -418,7 +431,9 @@ export def "install" [
     }
 
     for is in $install_scripts {
-        print ($is | nu-highlight)
+        print ("=" | repeat (term size).columns | str join "")
+        print ($is | lines | where $it !~ '^\s*log info' | str join "\n" | nu-highlight)
+        print ("=" | repeat (term size).columns | str join "")
 
         if not $no_confirm {
             if ([ no, yes ] | input list "Install ?") != "yes" { continue }
