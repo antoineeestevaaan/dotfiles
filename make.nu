@@ -320,6 +320,10 @@ def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> 
     } | flatten
 }
 
+
+@example "install everything"                       { make install applications.nuon }
+@example "install without interactive confirmation" { make install --no-confirm applications.nuon }
+@example "select what to install, e.g. Neovim"      { open applications.nuon | where name == neovim | make install --from-stdin }
 export def "install" [
     file?: path,
     --from-stdin,
