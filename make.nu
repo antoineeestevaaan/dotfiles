@@ -346,11 +346,11 @@ export def "install" [
             "system" => { $entry.item | __system --cp $cp },
             "release" => {
                 if not ($entry.item | check-field host    --types [string]      --cp $cp) { return }
-                if not ($entry.item | check-field name    --types [string]      --cp $cp) { return }
+                if not ($entry.item | check-field repo    --types [string]      --cp $cp) { return }
                 if not ($entry.item | check-field tag     --types [string]      --cp $cp) { return }
                 if not ($entry.item | check-field asset   --types [string]      --cp $cp) { return }
                 if not ($entry.item | check-field install --types [list, table] --cp $cp) { return }
-                $entry.item | check-extra-fields [ kind, host, name, tag, asset, install, inner ] --cp $cp
+                $entry.item | check-extra-fields [ kind, host, repo, tag, asset, install, inner ] --cp $cp
 
                 let entry = $entry | update item { default true inner }
 
@@ -361,7 +361,7 @@ export def "install" [
                         } else {
                             $"$nu.temp-path | path join ($entry.item.asset)"
                         }
-                        cmd log $"make gh download-asset-from-release ($entry.item.name) ($entry.item.tag) --no-gh --asset ($entry.item.asset) --extract \(($extract)\)"
+                        cmd log $"make gh download-asset-from-release ($entry.item.repo) ($entry.item.tag) --no-gh --asset ($entry.item.asset) --extract \(($extract)\)"
                     },
                     _ => { log error $"unknown host ($entry.item.host) at ($cp)"; return },
                 }

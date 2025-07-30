@@ -1,14 +1,15 @@
 [
-    { kind: "system" , package: { apt: "tmux"       } },
-    { kind: "system" , package: { apt: "ripgrep"    } },
-    { kind: "system" , package: { apt: "fd-find"    } },
-    { kind: "system" , package: { apt: "sd"         } },
-    { kind: "system" , package: { apt: "lm-sensors" } },
-    { kind: "system" , package: { apt: "ttyplot"    } },
+    { name: "tmux"       , kind: "system" , package: { apt: "tmux"       } },
+    { name: "ripgrep"    , kind: "system" , package: { apt: "ripgrep"    } },
+    { name: "fd-find"    , kind: "system" , package: { apt: "fd-find"    } },
+    { name: "sd"         , kind: "system" , package: { apt: "sd"         } },
+    { name: "lm-sensors" , kind: "system" , package: { apt: "lm-sensors" } },
+    { name: "ttyplot"    , kind: "system" , package: { apt: "ttyplot"    } },
     {
+        name: "horcrux",
         kind: "release",
         host: "github.com",
-        name: "jesseduffield/horcrux",
+        repo: "jesseduffield/horcrux",
         tag: "v0.2",
         asset: "horcrux_0.2_Linux_armv6",
         inner: false,
@@ -20,9 +21,10 @@
         ],
     },
     {
+        name: "gh",
         kind: "release",
         host: "github.com",
-        name: "cli/cli",
+        repo: "cli/cli",
         tag: "v2.74.2",
         asset: "gh_2.74.2_linux_armv6",
         inner: true,
@@ -38,6 +40,7 @@
         ]
     },
     {
+        name: "find-git-repos",
         kind: "build",
         git: "https://github.com/antoineeestevaaan/find-git-repos",
         deps: [
@@ -56,6 +59,7 @@
         ],
     },
     {
+        name: "neovim",
         kind: "build",
         git: "https://github.com/neovim/neovim",
         deps: [
