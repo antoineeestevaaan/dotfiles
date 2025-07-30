@@ -1,10 +1,10 @@
 [
-    { kind: "apt" , package: "tmux"       },
-    { kind: "apt" , package: "ripgrep"    },
-    { kind: "apt" , package: "fd-find"    },
-    { kind: "apt" , package: "sd"         },
-    { kind: "apt" , package: "lm-sensors" },
-    { kind: "apt" , package: "ttyplot"    },
+    { kind: "system" , package: { apt: "tmux"       } },
+    { kind: "system" , package: { apt: "ripgrep"    } },
+    { kind: "system" , package: { apt: "fd-find"    } },
+    { kind: "system" , package: { apt: "sd"         } },
+    { kind: "system" , package: { apt: "lm-sensors" } },
+    { kind: "system" , package: { apt: "ttyplot"    } },
     {
         kind: "release",
         host: "github.com",
@@ -41,7 +41,7 @@
         kind: "build",
         git: "https://github.com/antoineeestevaaan/find-git-repos",
         deps: [
-            { kind: "apt" , package: "libssl-dev" },
+            { kind: "system" , package: { apt: "libssl-dev" } },
         ],
         checkout: "bbb78cc",
         build: [
@@ -59,7 +59,7 @@
         kind: "build",
         git: "https://github.com/neovim/neovim",
         deps: [
-            { kind: "apt" , package: "cmake" },
+            { kind: "system" , package: { apt: "cmake" } },
         ],
         checkout: "nightly",
         variables: {

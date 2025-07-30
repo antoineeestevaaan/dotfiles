@@ -235,6 +235,17 @@ def "cmd log" [cmd: string, --indent: int = 4, --indent-level: int = 0]: [ nothi
     ]
 }
 
+def __system [--cp: cell-path]: [ record -> list<string> ] {
+    if not ($in | check-field package --types [record] --cp $cp) { return }
+    $in | check-extra-fields [ kind, package ] --cp $cp
+
+    let cp = $cp | split cell-path | append "package" | into cell-path
+    if not ($in.package | check-field apt --types [string] --cp $cp) { return }
+    $in.package | check-extra-fields [ kind, apt ] --cp $cp
+
+    cmd log $"yes | sudo apt install ($in.package.apt)"
+}
+
 def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> list<string> ] {
     if ($in | is-empty) {
         log warning $"nothing to install at ($cp)"
@@ -332,15 +343,7 @@ export def "install" [
         if not ($entry.item | check-field kind --types [string] --cp $cp) { return }
 
         let lines = match $entry.item.kind {
-            "apt" => {
-                if not ($entry.item | check-field package --types [string] --cp $cp) { return }
-                $entry.item | check-extra-fields [ kind, package ] --cp $cp
-
-                [
-                    $"use (pwd | path join log.nu) *"
-                    ...(cmd log $"yes | sudo apt install ($entry.item.package)")
-                ]
-            },
+            "system" => { $entry.item | __system --cp $cp },
             "release" => {
                 if not ($entry.item | check-field host    --types [string]      --cp $cp) { return }
                 if not ($entry.item | check-field name    --types [string]      --cp $cp) { return }
@@ -364,8 +367,6 @@ export def "install" [
                 }
 
                 [
-                    $"use (pwd | path join make.nu)"
-                    $"use (pwd | path join log.nu) *"
                     ...$pull,
                     ...($entry.item.install | __install ($nu.temp-path | path join $entry.item.asset) --cp $cp)
                 ]
@@ -387,9 +388,6 @@ export def "install" [
                 ] | path join
 
                 [
-                    $"use (pwd | path join .config nushell modules misc) \"make\""
-                    $"use (pwd | path join make.nu)"
-                    $"use (pwd | path join log.nu) *"
                     $"if not \(\"($cache)\" | path exists\) {"
                     ...(cmd log $"    git clone ($entry.item.git) ($cache)")
                     "}"
@@ -400,12 +398,7 @@ export def "install" [
                         if not ($dep.item | check-field kind --types [string] --cp $cp) { return }
 
                         match $dep.item.kind {
-                            "apt" => {
-                                if not ($dep.item | check-field package --types [string] --cp $cp) { return }
-                                $dep.item | check-extra-fields [ kind, package ] --cp $cp
-
-                                cmd log $"yes | sudo apt install ($dep.item.package)"
-                            },
+                            "system" => { $dep.item | __system --cp $cp },
                             "release" | "build" => { log warning $"unsupported kind ($dep.item.kind) for dependencies at ($cp)"; return },
                             _ => { log warning $"unknown kind ($dep.item.kind) at ($cp)"; return },
                         }
@@ -427,12 +420,17 @@ export def "install" [
             _ => { log warning $"unknown kind ($entry.item.kind) at ($cp)"; return },
         }
 
-        $lines | str join "\n"
+        [
+            $"use (pwd | path join .config nushell modules misc) \"make\""
+            $"use (pwd | path join make.nu)"
+            $"use (pwd | path join log.nu) *"
+            ...$lines
+        ] | str join "\n"
     }
 
     for is in $install_scripts {
         print ("=" | repeat (term size).columns | str join "")
-        print ($is | lines | where $it !~ '^\s*log info' | str join "\n" | nu-highlight)
+        print ($is | lines | where $it !~ '^\s*log info |^\s*use ' | str join "\n" | nu-highlight)
         print ("=" | repeat (term size).columns | str join "")
 
         if not $no_confirm {
