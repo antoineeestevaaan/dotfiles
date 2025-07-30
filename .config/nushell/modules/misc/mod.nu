@@ -19,77 +19,77 @@ export def --wrapped make [
     ^make ...$make_variables ...$args
 }
 
-export const CONSOLE_SETUP_FILES_DIR = "/root"
+const CONSOLE_FONTS_DIR = "/usr/share/consolefonts/"
+const CONSOLE_FONT_FILE_FORMAT = "psf.gz"
 
-def "ls-console-variants" []: [
-    nothing -> table<value: string, description: string>
-] {
-    print --no-newline $"(ansi default_dimmed)getting `.console-setup` variants from `($CONSOLE_SETUP_FILES_DIR)/`...(ansi reset)"
-    sudo find $CONSOLE_SETUP_FILES_DIR -maxdepth 1 -name '*.console-setup*'
-        | lines
-        | wrap filename
-        | insert name { $in.filename | path parse | get extension }
-        | insert content {
-            sudo cat $in.filename
-                | lines
-                | parse "{k}={v}"
-                | update v { str trim --left --right --char '"' }
-                | transpose --header-row
-                | into record
-        }
-        | insert description {
-            $in.content | select CHARMAP FONTFACE FONTSIZE | to nuon
-        }
-        | rename --column { name: value }
-        | select value description
+const BASE_FONT = {
+    ACTIVE_CONSOLES : "/dev/tty[1-6]",
+    CHARMAP         : "UTF-8",
+    CODESET         : "guess",
+    FONTFACE        : null,
+    FONTSIZE        : null,
+    VIDEOMODE       : "",
 }
+
+const TMP_CONSOLE_SETUP_FILE = "/tmp/.console-setup"
+
+const CONSOLE_FONT_VARIANT = "custom"
+const TARGET_ROOT_CONSOLE_SETUP_FILE = $"/root/.console-setup.($CONSOLE_FONT_VARIANT)"
 
 # update the font of TTYs using `setupcon` and `console-setup`
 #
-# > [!note] this uses `.console*` files stored in `$CONSOLE_SETUP_FILES_DIR` so that
-# > running the script with `sudo` uses the proper files.
-export def "update-tty-font" [
-    variant: string@ls-console-variants = "",
-    --all-ttys (-a),
-] {
-    let screen = open /sys/class/graphics/fb0/virtual_size
-        | parse "{w},{h}"
-        | into record
-        | into int w h
-
-    let font = sudo cat $"($CONSOLE_SETUP_FILES_DIR)/([".console-setup", $variant] | where $it != "" | str join ".")"
-        | lines
-        | parse '{k}="{v}"' | where k == "FONTSIZE"
-        | into record
-        | get v
-        | parse "{w}x{h}"
-        | into record
-        | into int w h
-
-    let unused_w_pixels = $screen.w mod $font.w
-    if $unused_w_pixels > 0 {
-        if $variant == "" {
-            print $"[(ansi yellow)WARNING(ansi reset)] default TTY font variant will leave ($unused_w_pixels) unused pixels horizontally."
-        } else {
-            print $"[(ansi yellow)WARNING(ansi reset)] TTY font variant '($variant)' will leave ($unused_w_pixels) unused pixels horizontally."
+# > [!note] this script uses `sudo` to run `setupcon` from files in `/root/`
+export def update-tty-font [--all-ttys (-a)] {
+    let console_fonts = ls $CONSOLE_FONTS_DIR
+        | get name
+        | path parse --extension $CONSOLE_FONT_FILE_FORMAT
+        | get stem
+        | parse "{codeset}-{font}"
+        | update font { parse --regex '(?<face>[a-zA-Z]*)(?<size>\d.*)' }
+        | flatten font --all
+        | reject codeset
+        | uniq
+        | update size {
+            let parsed = $in | parse --regex '(?<a>\d+)x(?<b>\d+)|(?<c>\d+)' | into record
+            if $parsed.c? != "" {
+                {
+                    a: $parsed.c,
+                    b: 8,
+                }
+            } else {
+                {
+                    a: $parsed.a,
+                    b: $parsed.b,
+                }
+            }
         }
-    }
-    let unused_h_pixels = $screen.h mod $font.h
-    if $unused_h_pixels > 0 {
-        if $variant == "" {
-            print $"[(ansi yellow)WARNING(ansi reset)] default TTY font variant will leave ($unused_h_pixels) unused pixels vertically."
-        } else {
-            print $"[(ansi yellow)WARNING(ansi reset)] TTY font variant '($variant)' will leave ($unused_h_pixels) unused pixels vertically."
-        }
+
+    let choice = $console_fonts
+        | insert display { $"($in.face) ($in.size.a) ($in.size.b)" }
+        | try { input list --fuzzy --display display "Choose a font" }
+    if $choice == null {
+        return
     }
 
+    $BASE_FONT
+        | update FONTFACE $choice.face
+        | update FONTSIZE $"($choice.size.a)x($choice.size.b)"
+        | items { |k, v| $"($k)=\"($v)\""}
+        | str join "\n"
+        | save --force $TMP_CONSOLE_SETUP_FILE
+
+    sudo cp $TMP_CONSOLE_SETUP_FILE $TARGET_ROOT_CONSOLE_SETUP_FILE
     sudo setupcon ...[
         --force
         ...(if not $all_ttys { [ --current-tty ] } else { [] })
         --font-only
-        $variant
+        $CONSOLE_FONT_VARIANT
     ]
+
+    sudo rm $TARGET_ROOT_CONSOLE_SETUP_FILE
 }
+
+export alias utf = update-tty-font
 
 # a "fat" and structured wrapper around `df`
 export def df [--all (-a), --summary (-s)]: [ nothing -> table ] {
