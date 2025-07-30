@@ -429,16 +429,17 @@ export def "install" [
     }
 
     for is in $install_scripts {
+        let file = mktemp --tmpdir dotfiles.XXXXXXX
+        $is | save --force $file
+
         print ("=" | repeat (term size).columns | str join "")
+        print $"(ansi default_dimmed)# complete script: ($file)(ansi reset)"
         print ($is | lines | where $it !~ '^\s*log info |^\s*use ' | str join "\n" | nu-highlight)
         print ("=" | repeat (term size).columns | str join "")
 
         if not $no_confirm {
             if ([ no, yes ] | input list "Install ?") != "yes" { continue }
         }
-
-        let file = mktemp --tmpdir dotfiles.XXXXXXX
-        $is | save --force $file
 
         ^$nu.current-exe -I (pwd | path join .config nushell modules) $file
     }
