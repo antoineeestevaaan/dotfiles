@@ -38,22 +38,22 @@ export def link [--config, --system, --dry-run] {
         log info $"linking config files to (ansi magenta)~(ansi reset)"
         let skipped = $config_files | each { |src|
             let dest = $nu.home-path | path join $src
-            let target = try { ls -l $dest | get 0.target }
 
-            if $target != null and $target not-in ($git_files) {
-                if $dry_run {
-                    log debug $"    (ansi red)($src)(ansi reset)"
-                } else {
-                    log debug $"    (ansi red_bold)($src)(ansi reset)"
+            let res = try { ls $dest } catch { [] } | length
+            if $res != 0 {
+                let target = try { ls -l $dest | get 0.target }
+
+                log trace $"($dest) -> ($target)"
+                if $target == null {
+                    log debug $"    (ansi red)#(ansi reset)($src)"
+                    return $src
+                } else if $target not-in ($git_files) {
+                    log debug $"    (ansi red)*(ansi reset)($src)"
+                    return $src
                 }
-                return $src
             }
 
-            if $dry_run {
-                log debug $"    (ansi magenta)($src)(ansi reset)"
-            } else {
-                log debug $"    (ansi magenta_bold)($src)(ansi reset)"
-            }
+            log debug $"     ($src)"
 
             let src = $src | path expand
 
@@ -82,22 +82,22 @@ export def link [--config, --system, --dry-run] {
         log warning $"linking system files to (ansi magenta)/(ansi reset)"
         let skipped = $system_files | each { |src|
             let dest = $src | str replace --regex '^@' '/'
-            let target = try { sudo $nu.current-exe -c $"try { ls -l ($dest) | to nuon }" | from nuon | get 0.target }
 
-            if $target != null and $target not-in ($git_files) {
-                if $dry_run {
-                    log debug $"    (ansi red)($src)(ansi reset)"
-                } else {
-                    log debug $"    (ansi red_bold)($src)(ansi reset)"
+            let res = sudo $nu.current-exe -c $"try { ls ($dest) } catch { [] } | length" | into int
+            if $res != 0 {
+                let target = sudo $nu.current-exe -c $"try { ls -l ($dest) | to nuon }" | from nuon | get 0.target
+
+                log trace $"($dest) -> ($target)"
+                if $target == null {
+                    log debug $"    (ansi red)#(ansi reset)($src)"
+                    return $src
+                } else if $target not-in ($git_files) {
+                    log debug $"    (ansi red)*(ansi reset)($src)"
+                    return $src
                 }
-                return $src
             }
 
-            if $dry_run {
-                log debug $"    (ansi magenta)($src)(ansi reset)"
-            } else {
-                log debug $"    (ansi magenta_bold)($src)(ansi reset)"
-            }
+            log debug $"     ($src)"
 
             let src = $src | path expand
 
