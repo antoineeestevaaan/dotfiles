@@ -228,7 +228,7 @@ def expand-vars [--root: string]: [ string -> string ] {
 }
 
 def "cmd log" [cmd: string, --indent: int = 4, --indent-level: int = 0]: [ nothing -> list<string> ] {
-    let indentation = " " | repeat (($indent_level + 1) * $indent) | str join ""
+    let indentation = " " | repeat ($indent_level * $indent) | str join ""
     [
         $"($indentation)log info \"($cmd | str trim | nu-highlight)\""
         $cmd
@@ -389,7 +389,7 @@ export def "install" [
 
                 [
                     $"if not \(\"($cache)\" | path exists\) {"
-                    ...(cmd log $"    git clone ($entry.item.git) ($cache)")
+                    ...(cmd log $"    git clone ($entry.item.git) ($cache)" --indent-level 1)
                     "}"
                     ...(cmd log $"cd ($cache)")
                     ...($entry.item.deps | enumerate | each { |dep|
