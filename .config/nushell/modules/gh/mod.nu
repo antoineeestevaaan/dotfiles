@@ -71,3 +71,43 @@ export def "gh download-file" [repo: string, file: string, --output: path] {
 
     http get $res.download_url | save --progress --force $output
 }
+
+# available templates:
+# - '{{$pr.body}}'  : the body
+# - '{{$pr.title}}' : the title
+# - '{{$pr.id}}'    : the ID
+export def "gh pr merge" [
+    id: int,
+    --title: string = "{{$pr.title}} (#{{$pr.id}})",
+    --body: string = "{{$pr.body}}",
+    --method: string = "squash",
+] {
+    let pr = ^gh pr view $id --json title,body | from json
+
+    let body = $body
+        | str replace --all '{{$pr.body}}' $pr.body
+        | str replace --all '{{$pr.title}}' $pr.title
+        | str replace --all '{{$pr.id}}' $"($id)"
+    let title = $title
+        | str replace --all '{{$pr.body}}' $pr.body
+        | str replace --all '{{$pr.title}}' $pr.title
+        | str replace --all '{{$pr.id}}' $"($id)"
+
+    let merge_opt = match $method {
+        "merge"  => "--merge",
+        "rebase" => "--rebase",
+        "squash" => "--squash",
+        _        => {
+            error make {
+                msg: $"(ansi red_bold)invalid_merge_method(ansi reset)",
+                label: {
+                    text: $"'($method)' is not a valid merge method on GitHub",
+                    span: (metadata $method).span,
+                },
+                help: "valid merge methods: 'merge', 'rebase', 'squash'",
+            }
+        },
+    }
+
+    $body | ^gh pr merge $id -t $title -F - -s
+}
