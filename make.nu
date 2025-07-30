@@ -36,19 +36,32 @@ const NOT_CONFIG_FILE_PATTERN = [
 ]
 
 export def link [--config, --system, --dry-run] {
+    let git_files = git ls-files --full-name | lines | each { |it| pwd | path join $it }
+
     if $config or not $system {
         log info $"gathering config files..."
         let config_files = find-files --strip-prefix --exclude $NOT_CONFIG_FILE_PATTERN
 
         log info $"linking config files to (ansi magenta)~(ansi reset)"
         for src in $config_files {
-            if $dry_run {
-                log debug $"    (ansi default_dimmed)($src)(ansi reset)"
-            } else {
-                log debug $"    (ansi magenta)($src)(ansi reset)"
+            let dest = $nu.home-path | path join $src
+            let target = try { ls -l $dest | get 0.target }
+
+            if $target not-in ($git_files) {
+                if $dry_run {
+                    log debug $"    (ansi red)($src)(ansi reset)"
+                } else {
+                    log debug $"    (ansi red_bold)($src)(ansi reset)"
+                }
+                continue
             }
 
-            let dest = $nu.home-path | path join $src
+            if $dry_run {
+                log debug $"    (ansi magenta)($src)(ansi reset)"
+            } else {
+                log debug $"    (ansi magenta_bold)($src)(ansi reset)"
+            }
+
             let src = $src | path expand
 
             if not $dry_run {
@@ -64,13 +77,24 @@ export def link [--config, --system, --dry-run] {
 
         log warning $"linking system files to (ansi magenta)/(ansi reset)"
         for src in $system_files {
-            if $dry_run {
-                log debug $"    (ansi default_dimmed)($src)(ansi reset)"
-            } else {
-                log debug $"    (ansi magenta)($src)(ansi reset)"
+            let dest = $src | str replace --regex '^@' '/'
+            let target = try { sudo $nu.current-exe -c $"ls -l ($dest) | to nuon" | from nuon | get 0.target }
+
+            if $target not-in ($git_files) {
+                if $dry_run {
+                    log debug $"    (ansi red)($src)(ansi reset)"
+                } else {
+                    log debug $"    (ansi red_bold)($src)(ansi reset)"
+                }
+                continue
             }
 
-            let dest = $src | str replace --regex '^@' '/'
+            if $dry_run {
+                log debug $"    (ansi magenta)($src)(ansi reset)"
+            } else {
+                log debug $"    (ansi magenta_bold)($src)(ansi reset)"
+            }
+
             let src = $src | path expand
 
             if not $dry_run {
