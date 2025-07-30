@@ -43,17 +43,17 @@ export def link [--config, --system, --dry-run] {
         let config_files = find-files --strip-prefix --exclude $NOT_CONFIG_FILE_PATTERN
 
         log info $"linking config files to (ansi magenta)~(ansi reset)"
-        for src in $config_files {
+        let skipped = $config_files | each { |src|
             let dest = $nu.home-path | path join $src
             let target = try { ls -l $dest | get 0.target }
 
-            if $target not-in ($git_files) {
+            if $target != null and $target not-in ($git_files) {
                 if $dry_run {
                     log debug $"    (ansi red)($src)(ansi reset)"
                 } else {
                     log debug $"    (ansi red_bold)($src)(ansi reset)"
                 }
-                continue
+                return $src
             }
 
             if $dry_run {
@@ -68,6 +68,17 @@ export def link [--config, --system, --dry-run] {
                 mkdir ($dest | path dirname)
                 ln --symbolic --force $src $dest
             }
+            null
+        } | compact
+        if not ($skipped | is-empty) {
+            if ($skipped | length) == 1 {
+                log warning $"($skipped | length) config file skipped"
+            } else {
+                log warning $"($skipped | length) config files skipped"
+            }
+            for f in $skipped {
+                log info $"    (ansi default_dimmed)($f)(ansi reset)"
+            }
         }
     }
 
@@ -76,17 +87,17 @@ export def link [--config, --system, --dry-run] {
         let system_files = find-files --strip-prefix (pwd) --pattern $SYSTEM_FILE_PATTERN
 
         log warning $"linking system files to (ansi magenta)/(ansi reset)"
-        for src in $system_files {
+        let skipped = $system_files | each { |src|
             let dest = $src | str replace --regex '^@' '/'
             let target = try { sudo $nu.current-exe -c $"ls -l ($dest) | to nuon" | from nuon | get 0.target }
 
-            if $target not-in ($git_files) {
+            if $target != null and $target not-in ($git_files) {
                 if $dry_run {
                     log debug $"    (ansi red)($src)(ansi reset)"
                 } else {
                     log debug $"    (ansi red_bold)($src)(ansi reset)"
                 }
-                continue
+                return $src
             }
 
             if $dry_run {
@@ -100,6 +111,17 @@ export def link [--config, --system, --dry-run] {
             if not $dry_run {
                 sudo mkdir --parent ($dest | path dirname)
                 sudo ln --symbolic --force $src $dest
+            }
+            null
+        } | compact
+        if not ($skipped | is-empty) {
+            if ($skipped | length) == 1 {
+                log warning $"($skipped | length) system file skipped"
+            } else {
+                log warning $"($skipped | length) system files skipped"
+            }
+            for f in $skipped {
+                log info $"    (ansi default_dimmed)($f)(ansi reset)"
             }
         }
     }
