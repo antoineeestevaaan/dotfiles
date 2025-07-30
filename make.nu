@@ -89,7 +89,7 @@ export def link [--config, --system, --dry-run] {
         log warning $"linking system files to (ansi magenta)/(ansi reset)"
         let skipped = $system_files | each { |src|
             let dest = $src | str replace --regex '^@' '/'
-            let target = try { sudo $nu.current-exe -c $"ls -l ($dest) | to nuon" | from nuon | get 0.target }
+            let target = try { sudo $nu.current-exe -c $"try { ls -l ($dest) | to nuon }" | from nuon | get 0.target }
 
             if $target != null and $target not-in ($git_files) {
                 if $dry_run {
