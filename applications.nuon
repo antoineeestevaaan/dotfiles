@@ -63,9 +63,10 @@
         kind: "git",
         git: "https://github.com/neovim/neovim",
         deps: [
-            { name: "cmake", kind: "system" , package: { apt: "cmake" } },
+            { name: "cmake"   , kind: "system" , package: { apt: "cmake" } },
+            { name: "gettext" , kind: "system" , package: { apt: "gettext" } },
         ],
-        checkout: "v0.11.3",
+        checkout: "7121983c45",
         variables: {
             nvim_install_dir: '$var::OPT_DIR | path join $"nvim-(git rev-parse HEAD)"'
         },
