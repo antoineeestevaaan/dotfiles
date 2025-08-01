@@ -390,7 +390,7 @@ def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> 
                 }
                 [
                     ...(cmd log $"mkdir ($OPT_DIR)"),
-                    ...(cmd log $"ln --force --symbolic ($src) ($dest)"),
+                    ...(cmd log $"ln --verbose --force --symbolic ($src) ($dest)"),
                 ]
             }
             _ => { log warning $"unknown kind ($i.item.kind) at ($cp)"; return [] },
