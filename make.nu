@@ -289,7 +289,26 @@ def __system [--cp: cell-path]: [ record -> list<string> ] {
     if not ($in.package | check-field apt --types [string] --cp $cp) { return }
     $in.package | check-extra-fields [ name, kind, apt ] --cp $cp
 
-    cmd log $"yes | sudo apt install ($in.package.apt)"
+    [
+        ...(cmd log $"yes | sudo apt install ($in.package.apt)")
+        "try { open lock.json } #"
+        "    | default {} #"
+       $"    | upsert ($in.package.apt) { #"
+        "        apt list --installed #"
+        "            | lines #"
+        "            | parse \"{name}/{tags} {version} {arch} [{status}]\" #"
+        "            | update tags { split row ',' } #"
+        "            | update status { split row ',' } #"
+       $"            | where name == ($in.package.apt) #"
+        "            | into record #"
+        "            | get version #"
+        "    } #"
+        "    | transpose k v #"
+        "    | sort-by k #"
+        "    | transpose --header-row #"
+        "    | into record #"
+        "    | collect { save --force lock.json } #"
+    ]
 }
 
 def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> list<string> ] {
@@ -484,7 +503,7 @@ export def "install" [
 
         print ("=" | repeat (term size).columns | str join "")
         print $"(ansi default_dimmed)# complete script: ($file)(ansi reset)"
-        print ($is | lines | where $it !~ '^\s*log info |^\s*use ' | str join "\n" | nu-highlight)
+        print ($is | lines | where $it !~ '^\s*log info |^\s*use | #$' | str join "\n" | nu-highlight)
         print ("=" | repeat (term size).columns | str join "")
 
         if not $no_confirm {
