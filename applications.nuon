@@ -41,7 +41,7 @@
     },
     {
         name: "find-git-repos",
-        kind: "build",
+        kind: "git",
         git: "https://github.com/antoineeestevaaan/find-git-repos",
         deps: [
             { kind: "system" , package: { apt: "libssl-dev" } },
@@ -60,7 +60,7 @@
     },
     {
         name: "neovim",
-        kind: "build",
+        kind: "git",
         git: "https://github.com/neovim/neovim",
         deps: [
             { kind: "system" , package: { apt: "cmake" } },

@@ -421,7 +421,7 @@ export def "install" [
                     ...($entry.item.install | __install ($nu.temp-path | path join $entry.item.asset) --cp $cp)
                 ]
             },
-            "build" => {
+            "git" => {
                 if not ($entry.item | check-field git     --types [string]      --cp $cp) { return }
                 if not ($entry.item | check-field build   --types [list]        --cp $cp) { return }
                 if not ($entry.item | check-field install --types [list, table] --cp $cp) { return }
@@ -449,7 +449,7 @@ export def "install" [
 
                         match $dep.item.kind {
                             "system" => { $dep.item | __system --cp $cp },
-                            "release" | "build" => { log warning $"unsupported kind ($dep.item.kind) for dependencies at ($cp)"; return },
+                            "release" | "git" => { log warning $"unsupported kind ($dep.item.kind) for dependencies at ($cp)"; return },
                             _ => { log warning $"unknown kind ($dep.item.kind) at ($cp)"; return },
                         }
                     } | flatten)
