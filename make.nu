@@ -283,11 +283,11 @@ def "cmd log" [cmd: string, --indent: int = 4, --indent-level: int = 0]: [ nothi
 
 def __system [--cp: cell-path]: [ record -> list<string> ] {
     if not ($in | check-field package --types [record] --cp $cp) { return }
-    $in | check-extra-fields [ kind, package ] --cp $cp
+    $in | check-extra-fields [ name, kind, package ] --cp $cp
 
     let cp = $cp | split cell-path | append "package" | into cell-path
     if not ($in.package | check-field apt --types [string] --cp $cp) { return }
-    $in.package | check-extra-fields [ kind, apt ] --cp $cp
+    $in.package | check-extra-fields [ name, kind, apt ] --cp $cp
 
     cmd log $"yes | sudo apt install ($in.package.apt)"
 }
@@ -308,7 +308,7 @@ def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> 
         match $i.item.kind {
             "bin" => {
                 if not ($i.item | check-field path --types [string] --cp $cp) { return [] }
-                $i.item | check-extra-fields [ kind, path ] --cp $cp
+                $i.item | check-extra-fields [ name, kind, path ] --cp $cp
 
                 let raw_src = $i.item.path | expand-vars --root $root
                 let src = if ($raw_src | str contains '|') {
@@ -329,7 +329,7 @@ def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> 
             },
             "man" => {
                 if not ($i.item | check-field pages --types [list] --cp $cp) { return [] }
-                $i.item | check-extra-fields [ kind, pages ] --cp $cp
+                $i.item | check-extra-fields [ name, kind, pages ] --cp $cp
 
                 [
                     ...(cmd log $"mkdir ($MAN1_DIR)")
@@ -342,7 +342,7 @@ def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> 
             },
             "link" => {
                 if not ($i.item | check-field path --types [string] --cp $cp) { return [] }
-                $i.item | check-extra-fields [ kind, path ] --cp $cp
+                $i.item | check-extra-fields [ name, kind, path ] --cp $cp
 
                 let raw_src = $i.item.path | expand-vars --root $root
                 let src = if ($raw_src | str contains '|') {
@@ -400,7 +400,7 @@ export def "install" [
                 if not ($entry.item | check-field tag     --types [string]      --cp $cp) { return }
                 if not ($entry.item | check-field asset   --types [string]      --cp $cp) { return }
                 if not ($entry.item | check-field install --types [list, table] --cp $cp) { return }
-                $entry.item | check-extra-fields [ kind, host, repo, tag, asset, install, inner ] --cp $cp
+                $entry.item | check-extra-fields [ name, kind, host, repo, tag, asset, install, inner ] --cp $cp
 
                 let entry = $entry | update item { default true inner }
 
@@ -425,7 +425,7 @@ export def "install" [
                 if not ($entry.item | check-field git     --types [string]      --cp $cp) { return }
                 if not ($entry.item | check-field build   --types [list]        --cp $cp) { return }
                 if not ($entry.item | check-field install --types [list, table] --cp $cp) { return }
-                $entry.item | check-extra-fields [ kind, git, build, install, variables, deps, checkout ] --cp $cp
+                $entry.item | check-extra-fields [ name, kind, git, build, install, variables, deps, checkout ] --cp $cp
 
                 let entry = $entry | update item { default {} variables | default [] deps }
 
