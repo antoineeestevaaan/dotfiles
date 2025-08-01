@@ -44,7 +44,7 @@
         kind: "git",
         git: "https://github.com/antoineeestevaaan/find-git-repos",
         deps: [
-            { kind: "system" , package: { apt: "libssl-dev" } },
+            { name: "openssl", kind: "system" , package: { apt: "libssl-dev" } },
         ],
         checkout: "bbb78cc",
         build: [
@@ -63,7 +63,7 @@
         kind: "git",
         git: "https://github.com/neovim/neovim",
         deps: [
-            { kind: "system" , package: { apt: "cmake" } },
+            { name: "cmake", kind: "system" , package: { apt: "cmake" } },
         ],
         checkout: "nightly",
         variables: {
