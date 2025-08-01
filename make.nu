@@ -281,6 +281,25 @@ def "cmd log" [cmd: string, --indent: int = 4, --indent-level: int = 0]: [ nothi
     ]
 }
 
+def lock-app [
+    name: string,
+    value_block_lines: list<string>,
+]: [ nothing -> list<string> ] {
+    [
+       $"try { open (pwd)/lock.json }"
+        "    | default {}"
+       $"    | upsert ($name) {"
+        ...($value_block_lines | each { $"        ($in)" })
+        "    }"
+        "    | transpose k v"
+        "    | sort-by k"
+        "    | transpose --header-row"
+        "    | into record"
+       $"    | collect { save --force (pwd)/lock.json }"
+    ]
+    | each { $"($in) #" }
+}
+
 def __system [--cp: cell-path]: [ record -> list<string> ] {
     if not ($in | check-field package --types [record] --cp $cp) { return }
     $in | check-extra-fields [ name, kind, package ] --cp $cp
@@ -291,23 +310,17 @@ def __system [--cp: cell-path]: [ record -> list<string> ] {
 
     [
         ...(cmd log $"yes | sudo apt install ($in.package.apt)")
-        "try { open lock.json } #"
-        "    | default {} #"
-       $"    | upsert ($in.package.apt) { #"
-        "        apt list --installed #"
-        "            | lines #"
-        "            | parse \"{name}/{tags} {version} {arch} [{status}]\" #"
-        "            | update tags { split row ',' } #"
-        "            | update status { split row ',' } #"
-       $"            | where name == ($in.package.apt) #"
-        "            | into record #"
-        "            | get version #"
-        "    } #"
-        "    | transpose k v #"
-        "    | sort-by k #"
-        "    | transpose --header-row #"
-        "    | into record #"
-        "    | collect { save --force lock.json } #"
+        ...(lock-app $in.name [
+            "apt list --installed"
+            "    | lines"
+            "    | parse \"{name}/{tags} {version} {arch} [{status}]\""
+            "    | update tags { split row ',' }"
+            "    | update status { split row ',' }"
+           $"    | where name == ($in.package.apt)"
+            "    | into record"
+            "    | get version"
+           $"    | $\"apt.($in.package.apt)@\($in\)\""
+        ])
     ]
 }
 
@@ -438,6 +451,9 @@ export def "install" [
                 [
                     ...$pull,
                     ...($entry.item.install | __install ($nu.temp-path | path join $entry.item.asset) --cp $cp)
+                    ...(lock-app $entry.item.name [
+                       ($entry.item | $'"($in.host):($in.repo)@($in.tag):($in.asset)"')
+                    ])
                 ]
             },
             "git" => {
@@ -484,6 +500,9 @@ export def "install" [
                         cmd log $"($in | expand-vars --root '.')"
                     } | flatten )
                     ...($entry.item.install | __install "." --cp $cp)
+                    ...(lock-app $entry.item.name [
+                       $"$\"($entry.item.git)@\(git rev-parse HEAD\)\""
+                    ])
                 ]
             },
             _ => { log warning $"unknown kind ($entry.item.kind) at ($cp)"; return },
