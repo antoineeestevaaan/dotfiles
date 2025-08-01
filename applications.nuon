@@ -70,6 +70,7 @@
             nvim_install_dir: '$var::OPT_DIR | path join $"nvim-(git rev-parse HEAD)"'
         },
         build: [
+            'rm -rf ./build/',
             'make -V { CMAKE_BUILD_TYPE: Release }',
             'make -V { CMAKE_INSTALL_PREFIX: $var::nvim_install_dir } install',
         ],
