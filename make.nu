@@ -477,6 +477,7 @@ export def "install" [
                     ...(cmd log $"    git clone ($entry.item.git) ($cache)" --indent-level 1)
                     "}"
                     ...(cmd log $"cd ($cache)")
+                    ...(cmd log $"git fetch")
                     ...($entry.item.deps | enumerate | each { |dep|
                         let cp = $cp | split cell-path | append [ "deps" $dep.index ] | into cell-path
 
