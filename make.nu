@@ -488,13 +488,13 @@ export def "install" [
                             _ => { log warning $"unknown kind ($dep.item.kind) at ($cp)"; return },
                         }
                     } | flatten)
-                    ...($entry.item.variables | items { |k, v|
-                        $"let ($k) = ($v | expand-vars --root '.')"
-                    })
                     ...(if $entry.item.checkout? != null {
                         cmd log $"git checkout ($entry.item.checkout)"
                     } else {
                         []
+                    })
+                    ...($entry.item.variables | items { |k, v|
+                        $"let ($k) = ($v | expand-vars --root '.')"
                     })
                     ...($entry.item.build | each {
                         cmd log $"($in | expand-vars --root '.')"
