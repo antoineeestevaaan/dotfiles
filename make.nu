@@ -384,9 +384,9 @@ def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> 
                 }
 
                 let dest = if ($raw_src | str contains '|') {
-                    $"\(\"($OPT_DIR)\" | path join \(($raw_src) | path basename\)\)"
+                    $"\(\"($OPT_DIR)\" | path join bin \(($raw_src) | path basename\)\)"
                 } else {
-                    $"\"($OPT_DIR | path join ($raw_src | path basename))\""
+                    $"\"($OPT_DIR | path join bin ($raw_src | path basename))\""
                 }
                 [
                     ...(cmd log $"mkdir ($OPT_DIR)"),
