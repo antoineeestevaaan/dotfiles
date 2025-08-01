@@ -65,7 +65,7 @@
         deps: [
             { name: "cmake", kind: "system" , package: { apt: "cmake" } },
         ],
-        checkout: "nightly",
+        checkout: "v0.11.3",
         variables: {
             nvim_install_dir: '$var::OPT_DIR | path join $"nvim-(git rev-parse HEAD)"'
         },
