@@ -22,6 +22,7 @@ vim.o.inccommand     = "nosplit"
 vim.o.shell          = "/bin/bash"
 vim.o.list           = true
 vim.o.listchars      = "tab:» ,trail:·,extends:>,precedes:<,nbsp:␣"
+vim.o.swapfile       = false
 
 vim.pack.add({
   { src = "https://github.com/stevearc/oil.nvim" },
