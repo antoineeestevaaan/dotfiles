@@ -37,6 +37,7 @@ vim.pack.add({
   { src = "https://github.com/ggandor/leap.nvim" },
   { src = "https://github.com/christoomey/vim-tmux-navigator" },
   { src = "https://github.com/mbbill/undotree" },
+  { src = "https://github.com/echasnovski/mini.pick" },
 })
 
 local oil = require("oil")
@@ -45,6 +46,7 @@ local harpoon_mark = require("harpoon.mark")
 local harpoon_ui = require("harpoon.ui")
 local ibl = require("ibl")
 local leap = require("leap")
+local mini_pick = require("mini.pick")
 
 vim.lsp.enable({ "lua_ls" })
 
@@ -69,6 +71,7 @@ oil.setup {
 }
 ibl.setup()
 leap.add_default_mappings()
+mini_pick.setup()
 
 local function map(mode, lhs, rhs, opts)
   opts = opts or {}
@@ -105,6 +108,9 @@ vim.keymap.set("n", "<leader>hk", function() harpoon_ui.nav_file(3) end)
 vim.keymap.set("n", "<leader>hl", function() harpoon_ui.nav_file(4) end)
 -- undotree
 vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
+-- mini.pick
+vim.keymap.set("n", "<leader>ff", function() mini_pick.builtin.files({ tool = "git" }) end)
+vim.keymap.set("n", "<leader>fh", ":Pick help<CR>")
 
 -- Highlight on yank
 vim.api.nvim_create_autocmd('TextYankPost', {
