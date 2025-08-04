@@ -406,6 +406,7 @@ export def "install" [
     file?: path,
     --from-stdin,
     --no-confirm (-y),
+    --dry-run,
 ]: [ any -> nothing ] {
     let install_scripts = if $from_stdin {
         $in
@@ -530,6 +531,8 @@ export def "install" [
             if ([ no, yes ] | input list "Install ?") != "yes" { continue }
         }
 
-        ^$nu.current-exe -I (pwd | path join .config nushell modules) $file
+        if not $dry_run {
+            ^$nu.current-exe -I (pwd | path join .config nushell modules) $file
+        }
     }
 }
