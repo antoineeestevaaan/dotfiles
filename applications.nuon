@@ -8,16 +8,13 @@
     {
         name: "horcrux",
         kind: "curl",
-        url: "https://github.com/jesseduffield/horcrux/releases/download/$var::version/horcrux_$var::version_$var::arch.tar.gz",
+        url: "https://github.com/jesseduffield/horcrux/releases/download/{{$version}}/horcrux_{{$version}}_{{$arch}}.tar.gz",
         variables: {
             version : "0.2",
             arch    : "Linux_armv6",
         },
         install: [
-            {
-                kind: "bin",
-                path: "$var::ROOT/horcrux",
-            },
+            { kind: "bin", path: "{{$ROOT}}/horcrux" },
         ],
     },
     {
@@ -33,20 +30,14 @@
     {
         name: "gh",
         kind: "curl",
-        url: "https://github.com/cli/cli/releases/download/v$var::version/gh_$var:;version_$var::arch.tar.gz",
+        url: "https://github.com/cli/cli/releases/download/v{{$version}}/gh_{{$version}}_{{$arch}}.tar.gz",
         variables: {
             version : "2.74.2",
             arch    : "linux_armv6",
         },
         install: [
-            {
-                kind: "bin",
-                path: "$var::ROOT/$var::ARCHIVE/bin/gh",
-            },
-            {
-                kind: "man",
-                pages: [ "$var::ROOT/$var::ARCHIVE/share/man/man1/*" ],
-            },
+            { kind: "bin", path: "{{$ROOT}}/{{$ARCHIVE}}/bin/gh" },
+            { kind: "man", pages: [ "{{$ROOT/{{$ARCHIVE}}/share/man/man1/*" ] },
         ]
     },
     {
@@ -61,11 +52,11 @@
             "cc -o nob nob.c -lssl -lcrypto",
             "./nob",
         ],
+        variables: {
+            checksum: "f74da46dd63b5118ab8cf499124a92902bfecc1b18609f9d6e32e395d8a44e10",
+        },
         install: [
-            {
-                kind: "bin",
-                path: "$var::ROOT/build/find-git-repos-f74da46dd63b5118ab8cf499124a92902bfecc1b18609f9d6e32e395d8a44e10",
-            },
+            { kind: "bin", path: "{{$ROOT}}/build/find-git-repos-{{$checksum}}" },
         ],
     },
     {
@@ -75,44 +66,55 @@
         deps: [
             { name: "cmake"   , kind: "system" , package: { apt: "cmake" } },
             { name: "gettext" , kind: "system" , package: { apt: "gettext" } },
+            {
+                name: "lua-language-server",
+                kind: "curl",
+                url: "https://github.com/LuaLS/lua-language-server/releases/download/{{$version}}/lua-language-server-{{$version}}-{{$arch}}.tar.gz",
+                variables: {
+                    version : "3.13.5",
+                    arch    : "linux-x64",
+                },
+                install: [
+                    { kind: "bin", path: "{{$ROOT}}/bin/lua-language-server" },
+                ],
+            },
+            {
+                name: "tinymist",
+                kind: "curl",
+                url: "https://github.com/Myriad-Dreamin/tinymist/releases/download/{{$version}}/tinymist-{{$arch}}.tar.gz",
+                variables: {
+                    version : "v0.12.18",
+                    arch    : "x86_64-unknown-linux-gnu",
+                },
+                install: [
+                    { kind: "bin", path: "{{$ROOT}}/tinymist" },
+                ],
+            },
+            {
+                name: "clang",
+                kind: "curl",
+                url: "https://github.com/llvm/llvm-project/releases/download/llvmorg-{{$version}}/clang+llvm-{{$version}}-{{$arch}}.tar.xz",
+                variables: {
+                    version : "11.0.0",
+                    arch    : "x86_64-linux-gnu-ubuntu-20.04",
+                },
+                install: [
+                    { kind: "bin", path: "{{$ROOT}}/bin/clangd" },
+                    { kind: "bin", path: "{{$ROOT}}/bin/clang-format" },
+                ],
+            },
         ],
         checkout: "7121983c45",
         variables: {
-            install_dir: '$var::OPT_DIR | path join $"nvim-(git rev-parse HEAD)"'
+            install_dir: '{{$OPT_DIR}} | path join $"nvim-(git rev-parse HEAD)"'
         },
         build: [
             'rm -rf ./build/',
             'make -V { CMAKE_BUILD_TYPE: Release }',
-            'make -V { CMAKE_INSTALL_PREFIX: $var::install_dir } install',
+            'make -V { CMAKE_INSTALL_PREFIX: {{$install_dir}} } install',
         ],
         install: [
-            {
-                kind: "link",
-                path: "$var::install_dir | path join bin nvim",
-            },
+            { kind: "link", path: "{{$install_dir}} | path join bin nvim" },
         ],
     },
 ]
-
-{
-    lua: {
-        enabled: true,
-        version: "3.13.5",
-        upstream: "https://github.com/LuaLS/lua-language-server/releases/download/{{VERSION}}/lua-language-server-{{VERSION}}-linux-x64.tar.gz",
-        files: [ "bin/lua-language-server" ],
-    },
-    tinymist: {
-        enabled: true,
-        version: "v0.12.18",
-        upstream: "https://github.com/Myriad-Dreamin/tinymist/releases/download/{{VERSION}}/tinymist-x86_64-unknown-linux-gnu.tar.gz",
-        tarball: "tinymist-x86_64-unknown-linux-gnu",
-        files: [ "tinymist" ],
-    },
-    clang: {
-        enabled: true,
-        version: "11.0.0",
-        upstream: "https://github.com/llvm/llvm-project/releases/download/llvmorg-{{VERSION}}/clang+llvm-{{VERSION}}-x86_64-linux-gnu-ubuntu-20.04.tar.xz",
-        tarball: "clang+llvm-{{VERSION}}-x86_64-linux-gnu-ubuntu-20.04"
-        files: [ "bin/clangd", "bin/clang-format" ],
-    }
-}
