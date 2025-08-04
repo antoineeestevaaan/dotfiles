@@ -25,19 +25,19 @@ vim.o.listchars      = "tab:» ,trail:·,extends:>,precedes:<,nbsp:␣"
 vim.o.swapfile       = false
 
 vim.pack.add({
-  { src = "https://github.com/stevearc/oil.nvim" },
-  { src = "https://github.com/neovim/nvim-lspconfig" },
-  { src = "https://github.com/tpope/vim-sleuth" },
-  { src = "https://github.com/tpope/vim-fugitive" },
-  { src = "https://github.com/tpope/vim-rhubarb" },
-  { src = "https://github.com/lewis6991/gitsigns.nvim" },
-  { src = "https://github.com/theprimeagen/harpoon" },
-  { src = "https://github.com/nvim-lua/plenary.nvim" },
-  { src = "https://github.com/lukas-reineke/indent-blankline.nvim" },
-  { src = "https://github.com/ggandor/leap.nvim" },
-  { src = "https://github.com/christoomey/vim-tmux-navigator" },
-  { src = "https://github.com/mbbill/undotree" },
-  { src = "https://github.com/echasnovski/mini.pick" },
+  { src = "https://github.com/stevearc/oil.nvim"                   , version = "bbad9a76b2617ce1221d49619e4e4b659b3c61fc" },
+  { src = "https://github.com/neovim/nvim-lspconfig"               , version = "d0dbf489a8810672fa9a61f4a86e5cf89214b772" },
+  { src = "https://github.com/tpope/vim-sleuth"                    , version = "be69bff86754b1aa5adcbb527d7fcd1635a84080" },
+  { src = "https://github.com/tpope/vim-fugitive"                  , version = "61b51c09b7c9ce04e821f6cf76ea4f6f903e3cf4" },
+  { src = "https://github.com/tpope/vim-rhubarb"                   , version = "5496d7c94581c4c9ad7430357449bb57fc59f501" },
+  { src = "https://github.com/lewis6991/gitsigns.nvim"             , version = "8270378ab83540b03d09c0194ba3e208f9d0cb72" },
+  { src = "https://github.com/theprimeagen/harpoon"                , version = "1bc17e3e42ea3c46b33c0bbad6a880792692a1b3" },
+  { src = "https://github.com/nvim-lua/plenary.nvim"               , version = "b9fd5226c2f76c951fc8ed5923d85e4de065e509" },
+  { src = "https://github.com/lukas-reineke/indent-blankline.nvim" , version = "005b56001b2cb30bfa61b7986bc50657816ba4ba" },
+  { src = "https://github.com/ggandor/leap.nvim"                   , version = "02bf52e49c72cc5dabb53ec9494d10d304f0b2c9" },
+  { src = "https://github.com/christoomey/vim-tmux-navigator"      , version = "c45243dc1f32ac6bcf6068e5300f3b2b237e576a" },
+  { src = "https://github.com/mbbill/undotree"                     , version = "28f2f54a34baff90ea6f4a735ef1813ad875c743" },
+  { src = "https://github.com/echasnovski/mini.pick"               , version = "82ec629ca108c7b96b8b9bb733d235b39e137690" },
 })
 
 local oil = require("oil")
