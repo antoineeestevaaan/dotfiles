@@ -69,7 +69,9 @@ oil.setup {
     show_hidden = true,
   },
 }
-ibl.setup()
+ibl.setup({
+  indent = { char = "." }
+})
 leap.add_default_mappings()
 mini_pick.setup()
 
