@@ -266,11 +266,18 @@ def check-extra-fields [fields: list<string>, --cp: cell-path]: [ record -> bool
     true
 }
 
-def expand-vars [--root: string]: [ string -> string ] {
+def expand-const-vars [--root: string]: [ string -> string ] {
     $in
-        | str replace --all '$var::OPT_DIR' $'"($OPT_DIR)"'
-        | str replace --all '$var::ROOT' $root
-        | str replace --all '$var::' '$'
+        | str replace --all '{{$OPT_DIR}}' $'"($OPT_DIR)"'
+        | str replace --all '{{$ROOT}}' $root
+}
+
+def expand-vars [vars: record, --root: string, --wrap]: [ string -> string ] {
+    let input = $in
+    $vars | transpose k v | reduce --fold ($input | expand-const-vars --root $root) { |it, acc|
+        $acc | str replace --all $"{{$($it.k)}}" (if $wrap { $"\(($it.v)\)" } else { $it.v })
+    }
+    | expand-const-vars --root $root
 }
 
 def "cmd log" [cmd: string, --indent: int = 4, --indent-level: int = 0]: [ nothing -> list<string> ] {
@@ -324,7 +331,7 @@ def __system [--cp: cell-path]: [ record -> list<string> ] {
     ]
 }
 
-def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> list<string> ] {
+def __install [vars: record, root: string, --cp: cell-path]: [ list -> list<string>, table -> list<string> ] {
     if ($in | is-empty) {
         log warning $"nothing to install at ($cp)"
         return
@@ -342,7 +349,7 @@ def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> 
                 if not ($i.item | check-field path --types [string] --cp $cp) { return [] }
                 $i.item | check-extra-fields [ name, kind, path ] --cp $cp
 
-                let raw_src = $i.item.path | expand-vars --root $root
+                let raw_src = $i.item.path | expand-vars $vars --root $root
                 let src = if ($raw_src | str contains '|') {
                     $"\(($raw_src)\)"
                 } else {
@@ -366,7 +373,7 @@ def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> 
                 [
                     ...(cmd log $"mkdir ($MAN1_DIR)")
                     ...($i.item.pages | each { |it|
-                        let src_glob = $it | expand-vars --root $root
+                        let src_glob = $it | expand-vars $vars --root $root
                         let dest = $MAN1_DIR
                         cmd log $"cp --verbose \(\"($src_glob)\" | into glob\) \"($dest)\""
                     } | flatten)
@@ -376,7 +383,7 @@ def __install [root: string, --cp: cell-path]: [ list -> list<string>, table -> 
                 if not ($i.item | check-field path --types [string] --cp $cp) { return [] }
                 $i.item | check-extra-fields [ name, kind, path ] --cp $cp
 
-                let raw_src = $i.item.path | expand-vars --root $root
+                let raw_src = $i.item.path | expand-vars $vars --root $root
                 let src = if ($raw_src | str contains '|') {
                     $"\(($raw_src)\)"
                 } else {
@@ -451,7 +458,7 @@ export def "install" [
 
                 [
                     ...$pull,
-                    ...($entry.item.install | __install ($nu.temp-path | path join $entry.item.asset) --cp $cp)
+                    ...($entry.item.install | __install ($entry.item.variables? | default {}) ($nu.temp-path | path join $entry.item.asset) --cp $cp)
                     ...(lock-app $entry.item.name [
                        ($entry.item | $'"($in.host):($in.repo)@($in.tag):($in.asset)"')
                     ])
@@ -473,6 +480,7 @@ export def "install" [
                     ($entry.item.git | url parse | $in.host + $in.path)
                 ] | path join
 
+                let vars = $entry.item.variables? | default {}
                 [
                     $"if not \(\"($cache)\" | path exists\) {"
                     ...(cmd log $"    git clone ($entry.item.git) ($cache)" --indent-level 1)
@@ -496,12 +504,12 @@ export def "install" [
                         []
                     })
                     ...($entry.item.variables | items { |k, v|
-                        $"let ($k) = ($v | expand-vars --root '.')"
+                        $"let ($k) = ($v | expand-vars $vars --root '.')"
                     })
                     ...($entry.item.build | each {
-                        cmd log $"($in | expand-vars --root '.')"
+                        cmd log $"($in | expand-vars $vars --root '.' --wrap)"
                     } | flatten )
-                    ...($entry.item.install | __install "." --cp $cp)
+                    ...($entry.item.install | __install $vars "." --cp $cp)
                     ...(lock-app $entry.item.name [
                        $"$\"($entry.item.git)@\(git rev-parse HEAD\)\""
                     ])
