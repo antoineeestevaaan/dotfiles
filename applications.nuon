@@ -7,12 +7,12 @@
     { name: "ttyplot"    , kind: "system" , package: { apt: "ttyplot"    } },
     {
         name: "horcrux",
-        kind: "release",
-        host: "github.com",
-        repo: "jesseduffield/horcrux",
-        tag: "v0.2",
-        asset: "horcrux_0.2_Linux_armv6",
-        inner: false,
+        kind: "curl",
+        url: "https://github.com/jesseduffield/horcrux/releases/download/$var::version/horcrux_$var::version_$var::arch.tar.gz",
+        variables: {
+            version : "0.2",
+            arch    : "Linux_armv6",
+        },
         install: [
             {
                 kind: "bin",
@@ -21,21 +21,31 @@
         ],
     },
     {
+        name: "cargo",
+        kind: "curl",
+        url: "https://sh.rustup.rs",
+        args: [
+            --proto =https
+            --tlsv1.2
+        ],
+        run: sh,
+    },
+    {
         name: "gh",
-        kind: "release",
-        host: "github.com",
-        repo: "cli/cli",
-        tag: "v2.74.2",
-        asset: "gh_2.74.2_linux_armv6",
-        inner: true,
+        kind: "curl",
+        url: "https://github.com/cli/cli/releases/download/v$var::version/gh_$var:;version_$var::arch.tar.gz",
+        variables: {
+            version : "2.74.2",
+            arch    : "linux_armv6",
+        },
         install: [
             {
                 kind: "bin",
-                path: "$var::ROOT/bin/gh",
+                path: "$var::ROOT/$var::ARCHIVE/bin/gh",
             },
             {
                 kind: "man",
-                pages: [ "$var::ROOT/share/man/man1/*" ],
+                pages: [ "$var::ROOT/$var::ARCHIVE/share/man/man1/*" ],
             },
         ]
     },
@@ -68,18 +78,41 @@
         ],
         checkout: "7121983c45",
         variables: {
-            nvim_install_dir: '$var::OPT_DIR | path join $"nvim-(git rev-parse HEAD)"'
+            install_dir: '$var::OPT_DIR | path join $"nvim-(git rev-parse HEAD)"'
         },
         build: [
             'rm -rf ./build/',
             'make -V { CMAKE_BUILD_TYPE: Release }',
-            'make -V { CMAKE_INSTALL_PREFIX: $var::nvim_install_dir } install',
+            'make -V { CMAKE_INSTALL_PREFIX: $var::install_dir } install',
         ],
         install: [
             {
                 kind: "link",
-                path: "$var::nvim_install_dir | path join bin nvim",
+                path: "$var::install_dir | path join bin nvim",
             },
         ],
     },
 ]
+
+{
+    lua: {
+        enabled: true,
+        version: "3.13.5",
+        upstream: "https://github.com/LuaLS/lua-language-server/releases/download/{{VERSION}}/lua-language-server-{{VERSION}}-linux-x64.tar.gz",
+        files: [ "bin/lua-language-server" ],
+    },
+    tinymist: {
+        enabled: true,
+        version: "v0.12.18",
+        upstream: "https://github.com/Myriad-Dreamin/tinymist/releases/download/{{VERSION}}/tinymist-x86_64-unknown-linux-gnu.tar.gz",
+        tarball: "tinymist-x86_64-unknown-linux-gnu",
+        files: [ "tinymist" ],
+    },
+    clang: {
+        enabled: true,
+        version: "11.0.0",
+        upstream: "https://github.com/llvm/llvm-project/releases/download/llvmorg-{{VERSION}}/clang+llvm-{{VERSION}}-x86_64-linux-gnu-ubuntu-20.04.tar.xz",
+        tarball: "clang+llvm-{{VERSION}}-x86_64-linux-gnu-ubuntu-20.04"
+        files: [ "bin/clangd", "bin/clang-format" ],
+    }
+}
