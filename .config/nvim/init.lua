@@ -23,6 +23,7 @@ vim.o.shell          = "/bin/bash"
 vim.o.list           = true
 vim.o.listchars      = "tab:» ,trail:·,extends:>,precedes:<,nbsp:␣"
 vim.o.swapfile       = false
+vim.o.winborder      = "rounded"
 
 vim.pack.add({
   { src = "https://github.com/stevearc/oil.nvim"                   , version = "bbad9a76b2617ce1221d49619e4e4b659b3c61fc" },
