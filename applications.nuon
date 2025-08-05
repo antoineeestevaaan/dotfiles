@@ -75,7 +75,7 @@
                     arch    : "linux-arm64",
                 },
                 install: [
-                    { kind: "bin", path: "{{$ROOT}}/bin/lua-language-server" },
+                    { kind: "link", path: "{{$ROOT}}/bin/lua-language-server" },
                 ],
             },
             {

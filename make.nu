@@ -242,15 +242,15 @@ def __curl [--cp: cell-path]: [ record -> list<string> ] {
         ...$entry.variables,
         ARCHIVE: ($archive_path | path parse --extension "tar.gz" | get stem),
     }
-    let root = $nu.temp-path | path join $vars.ARCHIVE
+    let root = $OPT_DIR | path join $vars.ARCHIVE
 
     [
         ...(if not ($entry.run? | is-empty) {[
             ...(cmd log $"curl ($entry.args | str join ' ') ($url) | ($entry.run)")
         ]} else {[
             ...(cmd log $"curl -fLo ($archive_path) ($entry.args | str join ' ') ($url)")
-            ...(cmd log $"mkdir ($nu.temp-path | path join $vars.ARCHIVE)")
-            ...(cmd log $"tar xvf ($archive_path) --directory ($nu.temp-path | path join $vars.ARCHIVE)")
+            ...(cmd log $"mkdir ($root)")
+            ...(cmd log $"tar xvf ($archive_path) --directory ($root)")
         ]}),
         ...($entry.install | __install $vars $root --cp $cp)
         ...(lock-app $entry.name [ $"\"($url)\"" ])
