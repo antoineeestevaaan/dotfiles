@@ -32,11 +32,12 @@ const NOT_CONFIG_FILE_PATTERN = [
 ]
 
 const LINK_STATUS = {
-    ok           : 0
-    skipped_file : 1
-    forced_file  : 2
-    skipped_link : 3
-    forced_link  : 4
+    ok_new       : 0
+    ok_update    : 1
+    skipped_file : 2
+    forced_file  : 3
+    skipped_link : 4
+    forced_link  : 5
 }
 
 def link-file [
@@ -64,16 +65,17 @@ def link-file [
         } else if $target not-in ($git_files) {
             if not $force { $LINK_STATUS.skipped_link } else { $LINK_STATUS.forced_link }
         } else {
-            $LINK_STATUS.ok
+            $LINK_STATUS.ok_update
         }
     } else {
-        $LINK_STATUS.ok
+        $LINK_STATUS.ok_new
     }
 
-    if $status in [ $LINK_STATUS.ok, $LINK_STATUS.forced_file, $LINK_STATUS.forced_link ] {
-        if        $status == $LINK_STATUS.ok          { log debug   $"     ($file.src)"
-        } else if $status == $LINK_STATUS.forced_file { log warning $"    (ansi yellow)#(ansi reset)($file.src)"
-        } else if $status == $LINK_STATUS.forced_link { log warning $"    (ansi yellow)*(ansi reset)($file.src)"
+    if $status in [ $LINK_STATUS.ok_new, $LINK_STATUS.ok_update, $LINK_STATUS.forced_file, $LINK_STATUS.forced_link ] {
+        if        $status == $LINK_STATUS.ok_update   { log debug   $"    (ansi default_dimmed)~(ansi reset)($file.src)"
+        } else if $status == $LINK_STATUS.ok_new      { log info    $"    (ansi green         )+(ansi reset)($file.src)"
+        } else if $status == $LINK_STATUS.forced_file { log warning $"    (ansi yellow        )#(ansi reset)($file.src)"
+        } else if $status == $LINK_STATUS.forced_link { log warning $"    (ansi yellow        )*(ansi reset)($file.src)"
         } else { log fatal "UNREACHABLE" }
 
         let src = $file.src | path expand
