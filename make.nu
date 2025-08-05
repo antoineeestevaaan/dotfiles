@@ -122,108 +122,6 @@ export def link [--config, --system, --dry-run, --force] {
     }
 }
 
-# > [!important] only supports .tar.gz files for Linux
-@example "with GitHub CLI"                 { make gh download-asset-from-release cli/cli v2.74.2 linux_armv6.tar.gz }
-@example "without GitHub CLI"              { make gh download-asset-from-release cli/cli v2.74.2 --no-gh --asset gh_2.74.2_linux_armv6 }
-@example "archive with no inner directory" { make gh download-asset-from-release jesseduffield/horcrux v0.2 --no-gh --asset horcrux_0.2_Linux_armv6 --extract "/tmp/horcrux-0.2-armv6" }
-export def "gh download-asset-from-release" [
-    project        : string,
-    tag            : string,
-    asset_pattern? : string, # (only used without --no-gh)
-    --no-gh,
-    --asset        : string, # exact, without extension (only used with --no-gh)
-    --extract      : path = $nu.temp-path,
-] {
-    let asset = if $no_gh {
-        if $asset == null {
-             error make --unspanned {
-                msg: $"(ansi red_bold)argument_error(ansi reset): `asset` is required with `--no-gh`",
-            }
-        }
-
-        let archive = $"($asset).tar.gz"
-        {
-            url     : $"https://github.com/($project)/releases/download/($tag)/($archive)",
-            local   : ($nu.home-path | path join downloads $archive),
-        }
-    } else {
-        if $asset_pattern == null {
-             error make --unspanned {
-                msg: $"(ansi red_bold)argument_error(ansi reset): `asset_pattern` is required without `--no-gh`",
-            }
-        }
-
-        log debug "pulling GitHub"
-        let res = try { ^gh -R $project release view $tag --json assets } catch { null }
-        if $res == null {
-             error make {
-                msg: $"(ansi red_bold)argument_error(ansi reset)",
-                label: {
-                    text: $"(ansi default_dimmed)($tag)(ansi reset) is not a valid released tag for (ansi default_dimmed)($project)(ansi reset)",
-                    span: (metadata $tag).span,
-                },
-                help: ([
-                    $"see (ansi default_dimmed)https://github.com/($project)/releases(ansi reset) or run (ansi default_dimmed)gh -R ($project) release list --json name,tagName,isLatest(ansi reset) for a list of possible released tags.",
-                ] | str join "\n")
-            }
-        }
-
-        let assets = $res | from json | get assets
-
-        $assets
-            | where $it.name =~ $asset_pattern
-            | match ($in | length) {
-                0 => { error make {
-                    msg: $"(ansi red_bold)argument_error(ansi reset)",
-                    label: {
-                        text: $"'($asset_pattern)' is too strict or incorrect and matched no asset",
-                        span: (metadata $asset_pattern).span,
-                    },
-                    help: ([
-                        "available assets:",
-                        ...($assets | each { $"    (ansi default_dimmed)($in.name)(ansi reset)" }),
-                        $"see (ansi default_dimmed)https://github.com/($project)/releases/tag/($tag)(ansi reset) or run (ansi default_dimmed)gh -R ($project) release view ($tag) --json assets(ansi reset) for a list of possible assets.",
-                    ] | str join "\n")
-                } },
-                1 => {
-                    $in
-                        | into record
-                        | insert archive {      $in.name }
-                        | update name    { path parse --extension "tar.gz" | get stem }
-                        | insert local   { |it| $nu.home-path | path join downloads $it.archive }
-                        | select url local
-                },
-                _ => { error make {
-                    msg: $"(ansi red_bold)argument_error(ansi reset)",
-                    label: {
-                        text: $"'($asset_pattern)' is not strict enough and matched multiple assets",
-                        span: (metadata $asset_pattern).span,
-                    },
-                    help: ([
-                        "matched assets:",
-                        ...($in | each { $"    (ansi default_dimmed)($in.name)(ansi reset)" }),
-                        "available assets:",
-                        ...($assets | each { $"    (ansi default_dimmed)($in.name)(ansi reset)" }),
-                        $"see (ansi default_dimmed)https://github.com/($project)/releases/tag/($tag)(ansi reset) or run (ansi default_dimmed)gh -R ($project) release view ($tag) --json assets(ansi reset) for a list of possible assets.",
-                    ] | str join "\n")
-                } },
-            }
-    }
-
-    let download_dir = $asset.local | path dirname
-    if not ($download_dir | path exists) {
-	log info $"creating ($download_dir)..."
-        mkdir ($download_dir)
-    }
-
-    log info $"downloading ($asset.url)..."
-    curl -fLo $asset.local $asset.url
-
-    log info $"extracting ($asset.local)..."
-    mkdir $extract
-    tar xvf $asset.local --directory $extract
-}
-
 def "todo"        [msg: string] { print $"("TODO" | str color red): ($msg)"        }
 def "unreachable" [msg: string] { print $"("UNREACHABLE" | str color red): ($msg)" }
 
@@ -333,10 +231,78 @@ def __system [--cp: cell-path]: [ record -> list<string> ] {
     ]
 }
 
+def __curl [--cp: cell-path]: [ record -> list<string> ] {
+    if not ($in | check-field url --types [string] --cp $cp) { return }
+    $in | check-extra-fields [ name, kind, url, args, run, variables, install ] --cp $cp
+
+    let entry = $in | default [] args | default {} variables | default [] install
+    let url = $in.url | expand-vars $entry.variables --root $nu.temp-path
+    let archive_path = $url | url parse | get path | path parse | update parent $nu.temp-path | path join
+    let vars = {
+        ...$entry.variables,
+        ARCHIVE: ($archive_path | path parse --extension "tar.gz" | get stem),
+    }
+    let root = $nu.temp-path | path join $vars.ARCHIVE
+
+    [
+        ...(if not ($entry.run? | is-empty) {[
+            ...(cmd log $"curl ($entry.args | str join ' ') ($url) | ($entry.run)")
+        ]} else {[
+            ...(cmd log $"curl -fLo ($archive_path) ($entry.args | str join ' ') ($url)")
+            ...(cmd log $"mkdir ($nu.temp-path | path join $vars.ARCHIVE)")
+            ...(cmd log $"tar xvf ($archive_path) --directory ($nu.temp-path | path join $vars.ARCHIVE)")
+        ]}),
+        ...($entry.install | __install $vars $root --cp $cp)
+    ]
+}
+
+def __git [--cp: cell-path]: [ record -> list<string> ] {
+    if not ($in | check-field git     --types [string]      --cp $cp) { return }
+    if not ($in | check-field build   --types [list]        --cp $cp) { return }
+    if not ($in | check-field install --types [list, table] --cp $cp) { return }
+    $in | check-extra-fields [ name, kind, git, build, install, variables, deps, checkout ] --cp $cp
+
+    let entry = $in | default {} variables | default [] deps
+    let vars = $entry.variables? | default {}
+    let git_repo_root = '.'
+
+    let cache = [
+        $nu.home-path
+        .cache
+        antoineeestevaaan
+        doffiles
+        ($entry.git | url parse | $in.host + $in.path)
+    ] | path join
+
+    [
+        $"if not \(\"($cache)\" | path exists\) {"
+        ...(cmd log $"    git clone ($entry.git) ($cache)" --indent-level 1)
+        "}"
+        ...(cmd log $"cd ($cache)")
+        ...(cmd log $"git fetch")
+        ...($entry.deps | enumerate | each { |dep|
+            let cp = $cp | split cell-path | append [ "deps" $dep.index ] | into cell-path
+
+            if not ($dep.item | check-field kind --types [string] --cp $cp) { return }
+
+            match $dep.item.kind {
+                "system" => { $dep.item | __system --cp $cp },
+                "curl" => { $dep.item | __curl --cp $cp },
+                "git" => { $dep.item | __git --cp $cp },
+                _ => { log warning $"unknown kind ($dep.item.kind) at ($cp)"; return },
+            }
+        } | flatten)
+        ...(if $entry.checkout? != null { cmd log $"git checkout ($entry.checkout)" } else { [] })
+        ...($entry.build | each { cmd log $"($in | expand-vars $vars --root $git_repo_root --wrap)" } | flatten )
+        ...($entry.install | __install $vars $git_repo_root --cp $cp)
+        ...(lock-app $entry.name [ $"$\"($entry.git)@\(git rev-parse HEAD\)\"" ])
+    ]
+}
+
 def __install [vars: record, root: string, --cp: cell-path]: [ list -> list<string>, table -> list<string> ] {
     if ($in | is-empty) {
         log warning $"nothing to install at ($cp)"
-        return
+        return []
     }
 
     let cp = $cp | split cell-path | append "install" | into cell-path
@@ -407,7 +373,6 @@ def __install [vars: record, root: string, --cp: cell-path]: [ list -> list<stri
     } | flatten
 }
 
-
 @example "install everything"                       { make install applications.nuon }
 @example "install without interactive confirmation" { make install --no-confirm applications.nuon }
 @example "select what to install, e.g. Neovim"      { open applications.nuon | where name == neovim | make install --from-stdin }
@@ -436,87 +401,8 @@ export def "install" [
 
         let lines = match $entry.item.kind {
             "system" => { $entry.item | __system --cp $cp },
-            "release" => {
-                if not ($entry.item | check-field host    --types [string]      --cp $cp) { return }
-                if not ($entry.item | check-field repo    --types [string]      --cp $cp) { return }
-                if not ($entry.item | check-field tag     --types [string]      --cp $cp) { return }
-                if not ($entry.item | check-field asset   --types [string]      --cp $cp) { return }
-                if not ($entry.item | check-field install --types [list, table] --cp $cp) { return }
-                $entry.item | check-extra-fields [ name, kind, host, repo, tag, asset, install, inner ] --cp $cp
-
-                let entry = $entry | update item { default true inner }
-
-                let pull = match $entry.item.host {
-                    "github.com" => {
-                        let extract = if $entry.item.inner {
-                            "$nu.temp-path"
-                        } else {
-                            $"$nu.temp-path | path join ($entry.item.asset)"
-                        }
-                        cmd log $"make gh download-asset-from-release ($entry.item.repo) ($entry.item.tag) --no-gh --asset ($entry.item.asset) --extract \(($extract)\)"
-                    },
-                    _ => { log error $"unknown host ($entry.item.host) at ($cp)"; return },
-                }
-
-                [
-                    ...$pull,
-                    ...($entry.item.install | __install ($entry.item.variables? | default {}) ($nu.temp-path | path join $entry.item.asset) --cp $cp)
-                    ...(lock-app $entry.item.name [
-                       ($entry.item | $'"($in.host):($in.repo)@($in.tag):($in.asset)"')
-                    ])
-                ]
-            },
-            "git" => {
-                if not ($entry.item | check-field git     --types [string]      --cp $cp) { return }
-                if not ($entry.item | check-field build   --types [list]        --cp $cp) { return }
-                if not ($entry.item | check-field install --types [list, table] --cp $cp) { return }
-                $entry.item | check-extra-fields [ name, kind, git, build, install, variables, deps, checkout ] --cp $cp
-
-                let entry = $entry | update item { default {} variables | default [] deps }
-
-                let cache = [
-                    $nu.home-path
-                    .cache
-                    antoineeestevaaan
-                    doffiles
-                    ($entry.item.git | url parse | $in.host + $in.path)
-                ] | path join
-
-                let vars = $entry.item.variables? | default {}
-                [
-                    $"if not \(\"($cache)\" | path exists\) {"
-                    ...(cmd log $"    git clone ($entry.item.git) ($cache)" --indent-level 1)
-                    "}"
-                    ...(cmd log $"cd ($cache)")
-                    ...(cmd log $"git fetch")
-                    ...($entry.item.deps | enumerate | each { |dep|
-                        let cp = $cp | split cell-path | append [ "deps" $dep.index ] | into cell-path
-
-                        if not ($dep.item | check-field kind --types [string] --cp $cp) { return }
-
-                        match $dep.item.kind {
-                            "system" => { $dep.item | __system --cp $cp },
-                            "release" | "git" => { log warning $"unsupported kind ($dep.item.kind) for dependencies at ($cp)"; return },
-                            _ => { log warning $"unknown kind ($dep.item.kind) at ($cp)"; return },
-                        }
-                    } | flatten)
-                    ...(if $entry.item.checkout? != null {
-                        cmd log $"git checkout ($entry.item.checkout)"
-                    } else {
-                        []
-                    })
-                    ...($entry.item.variables | items { |k, v|
-                        $"let ($k) = ($v | expand-vars $vars --root '.')"
-                    })
-                    ...($entry.item.build | each {
-                        cmd log $"($in | expand-vars $vars --root '.' --wrap)"
-                    } | flatten )
-                    ...($entry.item.install | __install $vars "." --cp $cp)
-                    ...(lock-app $entry.item.name [
-                       $"$\"($entry.item.git)@\(git rev-parse HEAD\)\""
-                    ])
-                ]
-            },
+            "curl" => { $entry.item | __curl --cp $cp },
+            "git" => { $entry.item | __git --cp $cp },
             _ => { log warning $"unknown kind ($entry.item.kind) at ($cp)"; return },
         }
 
