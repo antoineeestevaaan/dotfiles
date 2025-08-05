@@ -24,8 +24,11 @@ const NOT_CONFIG_FILE_PATTERN = [
     .editorconfig,
     $SYSTEM_FILE_PATTERN,
     make.nu,
+    log.nu
     bootstrap.sh,
     applications.nuon,
+    lock.json,
+    TODO.txt,
 ]
 
 const LINK_STATUS = {
