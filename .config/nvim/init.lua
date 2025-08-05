@@ -49,7 +49,7 @@ local ibl = require("ibl")
 local leap = require("leap")
 local mini_pick = require("mini.pick")
 
-vim.lsp.enable({ "lua_ls", "tinymist" })
+vim.lsp.enable({ "lua_ls", "tinymist", "clangd" })
 vim.lsp.config("lua_ls", {
   settings = {
     Lua = {

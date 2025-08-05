@@ -94,13 +94,16 @@
                 name: "clang",
                 kind: "curl",
                 url: "https://github.com/llvm/llvm-project/releases/download/llvmorg-{{$version}}/clang+llvm-{{$version}}-{{$arch}}.tar.xz",
+                deps: [
+                    { name: "libtinfo5" , kind: "system" , package: { apt: "libtinfo5" } },
+                ],
                 variables: {
                     version : "11.0.0",
-                    arch    : "x86_64-linux-gnu-ubuntu-20.04",
+                    arch    : "aarch64-linux-gnu",
                 },
                 install: [
-                    { kind: "bin", path: "{{$ROOT}}/bin/clangd" },
-                    { kind: "bin", path: "{{$ROOT}}/bin/clang-format" },
+                    { kind: "bin", path: "{{$ROOT}}/{{$ARCHIVE}}/bin/clangd" },
+                    { kind: "bin", path: "{{$ROOT}}/{{$ARCHIVE}}/bin/clang-format" },
                 ],
             },
         ],

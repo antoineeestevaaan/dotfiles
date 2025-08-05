@@ -1,11 +1,13 @@
 {
   "cargo": "https://sh.rustup.rs",
+  "clang": "https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/clang+llvm-11.0.0-aarch64-linux-gnu.tar.xz",
   "cmake": "apt.cmake@3.25.1-1",
   "fd-find": "apt.fd-find@8.6.0-3",
   "find-git-repos": "https://github.com/antoineeestevaaan/find-git-repos@bbb78ccdbf4cb8bfbf3140dd501d650c4ae4f4da",
   "gettext": "apt.gettext@0.21-12",
   "gh": "https://github.com/cli/cli/releases/download/v2.74.2/gh_2.74.2_linux_armv6.tar.gz",
   "horcrux": "https://github.com/jesseduffield/horcrux/releases/download/v0.2/horcrux_0.2_Linux_armv6.tar.gz",
+  "libtinfo5": "apt.libtinfo5@6.4-4",
   "lm-sensors": "apt.lm-sensors@1:3.6.0-7.1",
   "lua-language-server": "https://github.com/LuaLS/lua-language-server/releases/download/3.13.5/lua-language-server-3.13.5-linux-arm64.tar.gz",
   "openssl": "apt.libssl-dev@3.0.16-1~deb12u1+rpt1",

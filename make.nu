@@ -244,7 +244,7 @@ def __curl [--cp: cell-path]: [ record -> list<string> ] {
     let archive_path = $url | url parse | get path | path parse | update parent $nu.temp-path | path join
     let vars = {
         ...$entry.variables,
-        ARCHIVE: ($archive_path | path parse --extension "tar.gz" | get stem),
+        ARCHIVE: ($archive_path | path parse --extension "" | get stem | str replace --regex '\.tar\.(gz|xz)$' ""),
     }
     let root = $OPT_DIR | path join $vars.ARCHIVE
 
