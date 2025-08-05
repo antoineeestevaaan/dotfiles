@@ -28,7 +28,68 @@ const NOT_CONFIG_FILE_PATTERN = [
     applications.nuon,
 ]
 
-export def link [--config, --system, --dry-run] {
+const LINK_STATUS = {
+    ok           : 0
+    skipped_file : 1
+    forced_file  : 2
+    skipped_link : 3
+    forced_link  : 4
+}
+
+def link-file [
+    file: record<src: string, dest: string>,
+    --git-files: list<string>,
+    --force,
+    --dry-run,
+    --sudo,
+] {
+    let res = if $sudo {
+        sudo $nu.current-exe -c $"try { ls ($file.dest) } catch { [] } | length" | into int
+    } else {
+        try { ls $file.dest } catch { [] } | length
+    }
+    let status = if $res != 0 {
+        let target = if $sudo {
+            sudo $nu.current-exe -c $"try { ls -l ($file.dest) | to nuon }" | from nuon | get 0.target
+        } else {
+            try { ls -l $file.dest | get 0.target }
+        }
+
+        log trace $"($file.dest) -> ($target)"
+        if $target == null {
+            if not $force { $LINK_STATUS.skipped_file } else { $LINK_STATUS.forced_file }
+        } else if $target not-in ($git_files) {
+            if not $force { $LINK_STATUS.skipped_link } else { $LINK_STATUS.forced_link }
+        } else {
+            $LINK_STATUS.ok
+        }
+    } else {
+        $LINK_STATUS.ok
+    }
+
+    if $status in [ $LINK_STATUS.ok, $LINK_STATUS.forced_file, $LINK_STATUS.forced_link ] {
+        if        $status == $LINK_STATUS.ok          { log debug   $"     ($file.src)"
+        } else if $status == $LINK_STATUS.forced_file { log warning $"    (ansi yellow)#(ansi reset)($file.src)"
+        } else if $status == $LINK_STATUS.forced_link { log warning $"    (ansi yellow)*(ansi reset)($file.src)"
+        } else { log fatal "UNREACHABLE" }
+
+        let src = $file.src | path expand
+
+        if not $dry_run {
+            if $sudo {
+                sudo mkdir ($file.dest | path dirname)
+                sudo ln --symbolic --force $src $file.dest
+            } else {
+                mkdir ($file.dest | path dirname)
+                ln --symbolic --force $src $file.dest
+            }
+        }
+    } else if $status == $LINK_STATUS.skipped_file { log error $"    (ansi red   )#(ansi reset)($file.src)"
+    } else if $status == $LINK_STATUS.skipped_link { log error $"    (ansi red   )*(ansi reset)($file.src)"
+    } else { log fatal "UNREACHABLE" }
+}
+
+export def link [--config, --system, --dry-run, --force] {
     let git_files = git ls-files --full-name | lines | each { |it| pwd | path join $it }
 
     if $config or not $system {
@@ -36,41 +97,10 @@ export def link [--config, --system, --dry-run] {
         let config_files = find-files --strip-prefix --exclude $NOT_CONFIG_FILE_PATTERN
 
         log info $"linking config files to (ansi magenta)~(ansi reset)"
-        let skipped = $config_files | each { |src|
-            let dest = $nu.home-path | path join $src
-
-            let res = try { ls $dest } catch { [] } | length
-            if $res != 0 {
-                let target = try { ls -l $dest | get 0.target }
-
-                log trace $"($dest) -> ($target)"
-                if $target == null {
-                    log debug $"    (ansi red)#(ansi reset)($src)"
-                    return $src
-                } else if $target not-in ($git_files) {
-                    log debug $"    (ansi red)*(ansi reset)($src)"
-                    return $src
-                }
-            }
-
-            log debug $"     ($src)"
-
-            let src = $src | path expand
-
-            if not $dry_run {
-                mkdir ($dest | path dirname)
-                ln --symbolic --force $src $dest
-            }
-            null
-        } | compact
-        if not ($skipped | is-empty) {
-            if ($skipped | length) == 1 {
-                log warning $"($skipped | length) config file skipped"
-            } else {
-                log warning $"($skipped | length) config files skipped"
-            }
-            for f in $skipped {
-                log info $"    (ansi default_dimmed)($f)(ansi reset)"
+        $config_files | each { |it|
+            link-file --git-files $git_files --force=$force --dry-run=$dry_run {
+                src: $it,
+                dest: ($nu.home-path | path join $it),
             }
         }
     }
@@ -80,41 +110,10 @@ export def link [--config, --system, --dry-run] {
         let system_files = find-files --strip-prefix (pwd) --pattern $SYSTEM_FILE_PATTERN
 
         log warning $"linking system files to (ansi magenta)/(ansi reset)"
-        let skipped = $system_files | each { |src|
-            let dest = $src | str replace --regex '^@' '/'
-
-            let res = sudo $nu.current-exe -c $"try { ls ($dest) } catch { [] } | length" | into int
-            if $res != 0 {
-                let target = sudo $nu.current-exe -c $"try { ls -l ($dest) | to nuon }" | from nuon | get 0.target
-
-                log trace $"($dest) -> ($target)"
-                if $target == null {
-                    log debug $"    (ansi red)#(ansi reset)($src)"
-                    return $src
-                } else if $target not-in ($git_files) {
-                    log debug $"    (ansi red)*(ansi reset)($src)"
-                    return $src
-                }
-            }
-
-            log debug $"     ($src)"
-
-            let src = $src | path expand
-
-            if not $dry_run {
-                sudo mkdir --parent ($dest | path dirname)
-                sudo ln --symbolic --force $src $dest
-            }
-            null
-        } | compact
-        if not ($skipped | is-empty) {
-            if ($skipped | length) == 1 {
-                log warning $"($skipped | length) system file skipped"
-            } else {
-                log warning $"($skipped | length) system files skipped"
-            }
-            for f in $skipped {
-                log info $"    (ansi default_dimmed)($f)(ansi reset)"
+        $system_files | each { |it|
+            link-file --git-files $git_files --force=$force --dry-run=$dry_run --sudo {
+                src: $it,
+                dest: ($it | str replace --regex '^@' '/'),
             }
         }
     }
