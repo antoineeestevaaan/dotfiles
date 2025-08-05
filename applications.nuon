@@ -25,7 +25,7 @@
             --proto =https
             --tlsv1.2
         ],
-        run: sh,
+        run: "bash -s -- -y",
     },
     {
         name: "gh",
@@ -37,7 +37,7 @@
         },
         install: [
             { kind: "bin", path: "{{$ROOT}}/{{$ARCHIVE}}/bin/gh" },
-            { kind: "man", pages: [ "{{$ROOT/{{$ARCHIVE}}/share/man/man1/*" ] },
+            { kind: "man", pages: [ "{{$ROOT}}/{{$ARCHIVE}}/share/man/man1/*" ] },
         ]
     },
     {
