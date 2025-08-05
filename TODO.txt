@@ -1,2 +1,1 @@
 treesitter
-LSP (lua_ls, clang, ... to applications.nuon)
