@@ -82,7 +82,7 @@ def link-file [
 
         if not $dry_run {
             if $sudo {
-                sudo mkdir ($file.dest | path dirname)
+                sudo mkdir --parents ($file.dest | path dirname)
                 sudo ln --symbolic --force $src $file.dest
             } else {
                 mkdir ($file.dest | path dirname)
@@ -122,6 +122,8 @@ export def link [--config, --system, --dry-run, --force] {
             }
         }
     }
+
+    null
 }
 
 def "todo"        [msg: string] { print $"("TODO" | str color red): ($msg)"        }
