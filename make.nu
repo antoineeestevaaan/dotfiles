@@ -253,6 +253,7 @@ def __curl [--cp: cell-path]: [ record -> list<string> ] {
             ...(cmd log $"tar xvf ($archive_path) --directory ($nu.temp-path | path join $vars.ARCHIVE)")
         ]}),
         ...($entry.install | __install $vars $root --cp $cp)
+        ...(lock-app $entry.name [ $"\"($url)\"" ])
     ]
 }
 
