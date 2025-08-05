@@ -72,7 +72,7 @@
                 url: "https://github.com/LuaLS/lua-language-server/releases/download/{{$version}}/lua-language-server-{{$version}}-{{$arch}}.tar.gz",
                 variables: {
                     version : "3.13.5",
-                    arch    : "linux-x64",
+                    arch    : "linux-arm64",
                 },
                 install: [
                     { kind: "bin", path: "{{$ROOT}}/bin/lua-language-server" },
@@ -84,7 +84,7 @@
                 url: "https://github.com/Myriad-Dreamin/tinymist/releases/download/{{$version}}/tinymist-{{$arch}}.tar.gz",
                 variables: {
                     version : "v0.12.18",
-                    arch    : "x86_64-unknown-linux-gnu",
+                    arch    : "aarch64-unknown-linux-gnu",
                 },
                 install: [
                     { kind: "bin", path: "{{$ROOT}}/{{$ARCHIVE}}/tinymist" },
