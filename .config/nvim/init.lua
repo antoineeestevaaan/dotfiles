@@ -49,7 +49,7 @@ local ibl = require("ibl")
 local leap = require("leap")
 local mini_pick = require("mini.pick")
 
-vim.lsp.enable({ "lua_ls" })
+vim.lsp.enable({ "lua_ls", "tinymist" })
 
 oil.setup {
   default_file_explorer = true,
