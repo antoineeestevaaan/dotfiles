@@ -50,6 +50,15 @@ local leap = require("leap")
 local mini_pick = require("mini.pick")
 
 vim.lsp.enable({ "lua_ls", "tinymist" })
+vim.lsp.config("lua_ls", {
+  settings = {
+    Lua = {
+      workspace = {
+        library = vim.api.nvim_get_runtime_file("", true),
+      }
+    }
+  }
+})
 
 oil.setup {
   default_file_explorer = true,
@@ -86,6 +95,13 @@ end
 vim.keymap.set("n", "-", oil.open)
 -- LSP
 vim.keymap.set("n", "<leader>lf", vim.lsp.buf.format)
+vim.keymap.set("n", '<leader>le', vim.diagnostic.open_float)
+vim.keymap.set("n", '<leader>lq', vim.diagnostic.setloclist)
+vim.keymap.set('n', '<leader>ln', vim.lsp.buf.rename)
+vim.keymap.set('n', '<leader>la', vim.lsp.buf.code_action)
+vim.keymap.set('n', '<leader>lr', vim.lsp.buf.references)
+vim.keymap.set('n', '<leader>ld', vim.lsp.buf.definition)
+vim.keymap.set("n", '<leader>li', function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled()) end)
 -- gitsigns
 map('n', '<leader>gp', function() gs.nav_hunk("prev") end)
 map('n', '<leader>gn', function() gs.nav_hunk("next") end)
