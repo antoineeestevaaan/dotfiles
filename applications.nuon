@@ -8,7 +8,7 @@
     {
         name: "horcrux",
         kind: "curl",
-        url: "https://github.com/jesseduffield/horcrux/releases/download/{{$version}}/horcrux_{{$version}}_{{$arch}}.tar.gz",
+        url: "https://github.com/jesseduffield/horcrux/releases/download/v{{$version}}/horcrux_{{$version}}_{{$arch}}.tar.gz",
         variables: {
             version : "0.2",
             arch    : "Linux_armv6",
@@ -87,7 +87,7 @@
                     arch    : "x86_64-unknown-linux-gnu",
                 },
                 install: [
-                    { kind: "bin", path: "{{$ROOT}}/tinymist" },
+                    { kind: "bin", path: "{{$ROOT}}/{{$ARCHIVE}}/tinymist" },
                 ],
             },
             {
