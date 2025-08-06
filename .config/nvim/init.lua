@@ -40,7 +40,6 @@ vim.pack.add({
   { src = "https://github.com/mbbill/undotree"                     , version = "28f2f54a34baff90ea6f4a735ef1813ad875c743" },
   { src = "https://github.com/echasnovski/mini.pick"               , version = "82ec629ca108c7b96b8b9bb733d235b39e137690" },
   { src = "https://github.com/nvim-treesitter/nvim-treesitter"     , version = "42fc28ba918343ebfd5565147a42a26580579482" },
-  { src = "https://github.com/nushell/tree-sitter-nu"              , version = "6544c4383643cf8608d50def2247a7af8314e148" },
 })
 
 local oil = require("oil")
@@ -67,6 +66,18 @@ nvim_treesitter_configs.setup({
   ensure_installed = { "nu" },
   highlight = { enable = true },
 })
+
+local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
+parser_config.nu = {
+  install_info = {
+    url = "https://github.com/nushell/tree-sitter-nu",
+    files = { "src/parser.c", "src/scanner.c" },
+    rev = "6544c4383643cf8608d50def2247a7af8314e148",
+    generate_requires_npm = false,
+    requires_generate_from_grammar = false,
+  },
+  filetype = "nu",
+}
 
 oil.setup {
   default_file_explorer = true,
