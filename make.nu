@@ -89,8 +89,8 @@ def link-file [
                 ln --symbolic --force $src $file.dest
             }
         }
-    } else if $status == $LINK_STATUS.skipped_file { log error $"    (ansi red   )#(ansi reset)($file.src)"
-    } else if $status == $LINK_STATUS.skipped_link { log error $"    (ansi red   )*(ansi reset)($file.src)"
+    } else if $status == $LINK_STATUS.skipped_file { log error   $"    (ansi red   )#(ansi reset)($file.src)"
+    } else if $status == $LINK_STATUS.skipped_link { log warning $"    (ansi yellow)*(ansi reset)($file.src)"
     } else { log fatal "UNREACHABLE" }
 }
 
