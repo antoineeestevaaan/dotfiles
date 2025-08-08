@@ -40,6 +40,9 @@ const TARGET_ROOT_CONSOLE_SETUP_FILE = $"/root/.console-setup.($CONSOLE_FONT_VAR
 #
 # > [!note] this script uses `sudo` to run `setupcon` from files in `/root/`
 export def update-tty-font [--all-ttys (-a)] {
+    let cache_font_file = $nu.temp-path | path join (whoami) font current
+
+    let current_font = try { open $cache_font_file | parse "{face}:{a}x{b}" | into record }
     let console_fonts = ls $CONSOLE_FONTS_DIR
         | get name
         | path parse --extension $CONSOLE_FONT_FILE_FORMAT
@@ -63,9 +66,16 @@ export def update-tty-font [--all-ttys (-a)] {
                 }
             }
         }
+        | insert current {
+            if $current_font == null {
+                return false
+            }
+
+            $in.face == $current_font.face and $in.size.a == $current_font.a and $in.size.b == $current_font.b
+        }
 
     let choice = $console_fonts
-        | insert display { $"($in.face) ($in.size.a) ($in.size.b)" }
+        | insert display { $" (if $in.current { '*' } else { ' ' }) ($in.face) ($in.size.a) ($in.size.b)" }
         | try { input list --fuzzy --display display "Choose a font" }
     if $choice == null {
         return
@@ -87,6 +97,9 @@ export def update-tty-font [--all-ttys (-a)] {
     ]
 
     sudo rm $TARGET_ROOT_CONSOLE_SETUP_FILE
+
+    mkdir ($cache_font_file | path dirname)
+    $"($choice.face):($choice.size.a)x($choice.size.b)" | save --force $cache_font_file
 }
 
 export alias utf = update-tty-font
