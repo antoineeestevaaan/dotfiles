@@ -1,4 +1,4 @@
-export const CLIPBOARD = $nu.temp-path | path join "clipboard.txt"
+export const CLIPBOARD = $nu.temp-path | path join "system-cb.txt"
 
 export def clip []: [ any -> nothing ] {
     tee { print } | to nuon | save --force $CLIPBOARD
