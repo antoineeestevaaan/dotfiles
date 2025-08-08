@@ -1,6 +1,10 @@
 vim.g.mapleader = " "
 
-vim.o.clipboard      = ""
+require("custom.clipboard").setup({
+  file = "/tmp/system-cb.txt",
+  clipboard = "",
+  cache = false,
+})
 vim.o.cursorline     = true
 vim.o.cursorcolumn   = true
 vim.o.colorcolumn    = "81,101"
