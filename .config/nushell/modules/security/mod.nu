@@ -54,9 +54,14 @@ export def get-pin [--pinentry: string = "tty", --prompt: string, --title: strin
 
 const PASSHOME = "/tmp/pass"
 
-export def "pass add" [passwd: string, --force] {
-    let buf = { parent: $PASSHOME, stem: $passwd, extension: "txt" } | path join
-    let out = { parent: $PASSHOME, stem: $passwd, extension: "gpg" } | path join
+export def "pass add" [name: string] {
+    let buf = { parent: $PASSHOME, stem: $name, extension: "txt" } | path join
+    let out = { parent: $PASSHOME, stem: $name, extension: "gpg" } | path join
+
+    if ($out | path exists) {
+        print $"($name) does exist, use `pass edit ($name)` instead"
+        return
+    }
 
     mkdir $PASSHOME
 
@@ -67,13 +72,83 @@ export def "pass add" [passwd: string, --force] {
 
     ^$env.EDITOR $buf
     gpg ...[
-        ...(if $force {[ --yes ]} else {[]})
+        --yes
         --output $out
-        --passphrase (get-pin --prompt "my prompt")
+        --passphrase (get-pin --prompt $"enter PIN for ($name)")
         --pinentry-mode loopback
         --symmetric
         $buf
     ]
 
     rm -rf $buf
+}
+
+export def "pass edit" [name: string] {
+    let buf = { parent: $PASSHOME, stem: $name, extension: "txt" } | path join
+    let out = { parent: $PASSHOME, stem: $name, extension: "gpg" } | path join
+
+    if not ($out | path exists) {
+        print $"($name) does not exist, use `pass add ($name)` first"
+        return
+    }
+
+    mkdir $PASSHOME
+
+    rm -rf $buf
+
+    let passphrase = get-pin --prompt $"enter PIN for ($name)"
+
+    touch $buf
+    chmod 600 $buf
+    gpg ...[
+        --yes
+        --output $buf
+        --passphrase $passphrase
+        --pinentry-mode loopback
+        --decrypt
+        $out
+    ]
+
+    ^$env.EDITOR $buf
+    gpg ...[
+        --yes
+        --output $out
+        --passphrase $passphrase
+        --pinentry-mode loopback
+        --symmetric
+        $buf
+    ]
+
+    rm -rf $buf
+}
+
+export def "pass list" []: [ nothing -> list<string> ] {
+    $PASSHOME
+        | path join "*.gpg"
+        | into glob
+        | ls $in
+        | get name
+        | path parse
+        | get stem
+}
+
+export def "pass show" [name: string]: [ nothing -> string ] {
+    let passwd_file = {
+        parent: $PASSHOME,
+        stem: $name,
+        extension: "gpg",
+    } | path join
+
+    if not ($passwd_file | path exists) {
+        print $"($name) not in pass home, use `pass list`"
+        return
+    }
+
+    gpg ...[
+        --yes
+        --passphrase (get-pin --prompt $"enter PIN for ($name)")
+        --pinentry-mode loopback
+        --decrypt
+        $passwd_file
+    ]
 }
