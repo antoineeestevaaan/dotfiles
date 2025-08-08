@@ -153,6 +153,7 @@ vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
 -- mini.pick
 vim.keymap.set("n", "<leader>ff", function() mini_pick.builtin.files({ tool = "git" }) end)
 vim.keymap.set("n", "<leader>fh", ":Pick help<CR>")
+vim.keymap.set("n", "<leader>fg", function() mini_pick.builtin.grep_live({ tool = "git" }) end)
 
 -- Highlight on yank
 vim.api.nvim_create_autocmd('TextYankPost', {
