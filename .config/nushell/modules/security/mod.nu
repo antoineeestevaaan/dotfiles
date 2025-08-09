@@ -53,37 +53,108 @@ export def get-pin [--pinentry: string = "tty", --prompt: string, --title: strin
 }
 
 const PASSHOME = "/tmp/pass"
+const PASS_WITNESS_FILE = $PASSHOME | path join ".witness"
+const PASS_WITNESS = "ok"
+
+export def "encrypt" [passphrase?: string, --armor]: [
+    string -> nothing,
+    string -> string,
+    string -> binary,
+] {
+    let passphrase = if $passphrase == null {
+        get-pin --prompt "enter PIN"
+    } else {
+        $passphrase
+    }
+
+    let res = $in | try {
+        gpg ...[
+            --passphrase $passphrase
+            --pinentry-mode loopback
+            ...(if $armor {[ --armor ]} else {[]})
+            --symmetric
+        ] err> /dev/null
+    }
+
+    if ($res | is-empty) { null } else { $res }
+}
+
+export def decrypt [passphrase?: string, --armor]: [
+    nothing -> error,
+    string -> string,
+    binary -> string,
+] {
+    if $in == null {
+        error make --unspanned { msg: "could not decrypt: invalid input (nothing)" }
+    }
+
+    let passphrase = if $passphrase == null {
+        get-pin --prompt "enter PIN"
+    } else {
+        $passphrase
+    }
+
+    let res = $in | try { gpg ...[
+        --passphrase $passphrase
+        --pinentry-mode loopback
+        ...(if $armor {[ --armor ]} else {[]})
+        --decrypt
+    ]}
+
+    if ($res | is-empty) { null } else { $res }
+}
+
+export def "pass init" [] {
+    mkdir ($PASS_WITNESS_FILE | path dirname)
+    $PASS_WITNESS | encrypt | save --force $PASS_WITNESS_FILE
+}
+
+def check-pass-store-is-init []: [ nothing -> bool ] {
+    if not ($PASS_WITNESS_FILE | path exists) {
+        print $"[(ansi red_bold)ERROR(ansi reset)]: store does not exist, use `pass init` first"
+        false
+    } else {
+        true
+    }
+}
+
+def unlock-pass-store [passphrase: string]: [ nothing -> bool ] {
+    let witness = open $PASS_WITNESS_FILE | try { decrypt $passphrase }
+    if $witness == null {
+        print $"[(ansi red_bold)ERROR(ansi reset)]: could not unlock pass store (bad key)"
+        false
+    } else {
+        true
+    }
+}
 
 export def "pass add" [name: string] {
+    if not (check-pass-store-is-init) { return }
+
     let buf = { parent: $PASSHOME, stem: $name, extension: "txt" } | path join
     let out = { parent: $PASSHOME, stem: $name, extension: "gpg" } | path join
 
     if ($out | path exists) {
-        print $"($name) does exist, use `pass edit ($name)` instead"
+        print $"ERROR: ($name) does exist, use `pass edit ($name)` instead"
         return
     }
+
+    let passphrase = get-pin --prompt $"unlock"
+    if not (unlock-pass-store $passphrase) { return }
 
     mkdir $PASSHOME
 
     rm -rf $buf
-
     touch $buf
     chmod 600 $buf
-
     ^$env.EDITOR $buf
-    gpg ...[
-        --yes
-        --output $out
-        --passphrase (get-pin --prompt $"enter PIN for ($name)")
-        --pinentry-mode loopback
-        --symmetric
-        $buf
-    ]
-
+    open $buf | encrypt $passphrase | save --force $out
     rm -rf $buf
 }
 
 export def "pass edit" [name: string] {
+    if not (check-pass-store-is-init) { return }
+
     let buf = { parent: $PASSHOME, stem: $name, extension: "txt" } | path join
     let out = { parent: $PASSHOME, stem: $name, extension: "gpg" } | path join
 
@@ -92,47 +163,35 @@ export def "pass edit" [name: string] {
         return
     }
 
+    let passphrase = get-pin --prompt $"unlock"
+    if not (unlock-pass-store $passphrase) { return }
+
     mkdir $PASSHOME
 
     rm -rf $buf
-
-    let passphrase = get-pin --prompt $"enter PIN for ($name)"
-
     touch $buf
     chmod 600 $buf
-    gpg ...[
-        --yes
-        --output $buf
-        --passphrase $passphrase
-        --pinentry-mode loopback
-        --decrypt
-        $out
-    ]
-
+    open $out | decrypt $passphrase | save --force $buf
     ^$env.EDITOR $buf
-    gpg ...[
-        --yes
-        --output $out
-        --passphrase $passphrase
-        --pinentry-mode loopback
-        --symmetric
-        $buf
-    ]
-
+    open $buf | encrypt $passphrase | save --force $out
     rm -rf $buf
 }
 
 export def "pass list" []: [ nothing -> list<string> ] {
+    if not (check-pass-store-is-init) { return }
+
     $PASSHOME
         | path join "*.gpg"
         | into glob
-        | ls $in
+        | try { ls $in } catch { [] }
         | get name
         | path parse
         | get stem
 }
 
 export def "pass show" [name: string]: [ nothing -> string ] {
+    if not (check-pass-store-is-init) { return }
+
     let passwd_file = {
         parent: $PASSHOME,
         stem: $name,
@@ -144,11 +203,8 @@ export def "pass show" [name: string]: [ nothing -> string ] {
         return
     }
 
-    gpg ...[
-        --yes
-        --passphrase (get-pin --prompt $"enter PIN for ($name)")
-        --pinentry-mode loopback
-        --decrypt
-        $passwd_file
-    ]
+    let passphrase = get-pin --prompt $"unlock"
+    if not (unlock-pass-store $passphrase) { return }
+
+    open $passwd_file | decrypt $passphrase
 }
