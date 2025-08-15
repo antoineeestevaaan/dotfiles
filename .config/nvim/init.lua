@@ -55,7 +55,7 @@ local leap = require("leap")
 local mini_pick = require("mini.pick")
 local nvim_treesitter_configs = require("nvim-treesitter.configs")
 
-vim.lsp.enable({ "lua_ls", "tinymist", "clangd", "nushell" })
+vim.lsp.enable({ "lua_ls", "tinymist", "clangd", "nushell", "rust_analyzer" })
 vim.lsp.config("lua_ls", {
   settings = {
     Lua = {
