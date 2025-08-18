@@ -29,6 +29,7 @@ vim.o.listchars      = "tab:» ,trail:·,extends:>,precedes:<,nbsp:␣"
 vim.o.swapfile       = false
 vim.o.winborder      = "rounded"
 
+---@format disable-next
 vim.pack.add({
   { src = "https://github.com/stevearc/oil.nvim"                   , version = "bbad9a76b2617ce1221d49619e4e4b659b3c61fc" },
   { src = "https://github.com/neovim/nvim-lspconfig"               , version = "d0dbf489a8810672fa9a61f4a86e5cf89214b772" },
@@ -58,11 +59,11 @@ local mini_pick = require("mini.pick")
 local nvim_treesitter_configs = require("nvim-treesitter.configs")
 
 vim.lsp.enable({
-    "lua_ls",
-    "tinymist",
-    "clangd",
-    "nushell",
-    "rust_analyzer",
+  "lua_ls",
+  "tinymist",
+  "clangd",
+  "nushell",
+  "rust_analyzer",
 })
 vim.lsp.config("lua_ls", {
   settings = {
