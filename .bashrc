@@ -1,4 +1,4 @@
-export SHELL="$0"
+export SHELL="$(readlink /proc/$$/exe)" # NOTE: avoids `SHELL` to be set to `-bash`
 
 export PATH="$HOME/opt/bin:$HOME/.local/share/bob/nvim-bin:$HOME/.cargo/bin:$PATH"
 export MANPATH="$HOME/.local/share/man:$MANPATH"
