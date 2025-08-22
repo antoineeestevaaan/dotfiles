@@ -29,6 +29,7 @@ vim.o.listchars      = "tab:» ,trail:·,extends:>,precedes:<,nbsp:␣"
 vim.o.swapfile       = false
 vim.o.winborder      = "rounded"
 
+---@format disable-next
 vim.pack.add({
   { src = "https://github.com/stevearc/oil.nvim"                   , version = "bbad9a76b2617ce1221d49619e4e4b659b3c61fc" },
   { src = "https://github.com/neovim/nvim-lspconfig"               , version = "d0dbf489a8810672fa9a61f4a86e5cf89214b772" },
@@ -44,8 +45,8 @@ vim.pack.add({
   { src = "https://github.com/mbbill/undotree"                     , version = "28f2f54a34baff90ea6f4a735ef1813ad875c743" },
   { src = "https://github.com/echasnovski/mini.pick"               , version = "82ec629ca108c7b96b8b9bb733d235b39e137690" },
   { src = "https://github.com/nvim-treesitter/nvim-treesitter"     , version = "42fc28ba918343ebfd5565147a42a26580579482" },
-  { src = "https://github.com/nvim-tree/nvim-web-devicons"         , version = "master" },
-  { src = "https://github.com/j-hui/fidget.nvim"                   , version = "main" },
+  { src = "https://github.com/nvim-tree/nvim-web-devicons"         , version = "c2599a81ecabaae07c49ff9b45dcd032a8d90f1a" },
+  { src = "https://github.com/j-hui/fidget.nvim"                   , version = "2cb5edb2dd6700a958a446b20bb2be04d318da9d" },
 })
 
 local oil = require("oil")
@@ -58,11 +59,11 @@ local mini_pick = require("mini.pick")
 local nvim_treesitter_configs = require("nvim-treesitter.configs")
 
 vim.lsp.enable({
-    "lua_ls",
-    "tinymist",
-    "clangd",
-    "nushell",
-    "rust_analyzer",
+  "lua_ls",
+  "tinymist",
+  "clangd",
+  "nushell",
+  "rust_analyzer",
 })
 vim.lsp.config("lua_ls", {
   settings = {
