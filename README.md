@@ -28,3 +28,9 @@ make install applications.nuon
 ```nushell
 open applications.nuon | where name == neovim | make install --from-stdin
 ```
+
+> [!important] IMPORTANT
+> run the following after install `fd-find` (see https://github.com/sharkdp/fd#on-debian)
+> ```shell
+> ln -sf $(which fd-find) ~/opt/bin/fd
+> ```
