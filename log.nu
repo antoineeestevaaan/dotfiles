@@ -4,13 +4,13 @@ export def "str color" [color: string]: [ string -> string ] {
 
 def level-to-int []: [ string -> int ] {
     match ($in | str trim) {
-        "FATAL"                =>  0,
-        "ERROR"                => 10,
-        "WARNING"              => 20,
-        "INFO" | "OK" | "HINT" => 30,
-        "HINT" | "DEBUG"       => 40,
-        "TRACE"                => 50,
-        _                      => 30,
+        "FATAL"          =>  0,
+        "ERROR"          => 10,
+        "WARNING"        => 20,
+        "INFO" | "OK"    => 30,
+        "HINT" | "DEBUG" => 40,
+        "TRACE"          => 50,
+        _                => 30,
     }
 }
 
