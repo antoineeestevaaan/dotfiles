@@ -57,6 +57,7 @@ local ibl = require("ibl")
 local leap = require("leap")
 local mini_pick = require("mini.pick")
 local nvim_treesitter_configs = require("nvim-treesitter.configs")
+local git = require("custom.git")
 
 vim.lsp.enable({
   "lua_ls",
@@ -161,9 +162,9 @@ vim.keymap.set("n", "<leader>hl", function() harpoon_ui.nav_file(4) end)
 -- undotree
 vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
 -- mini.pick
-vim.keymap.set("n", "<leader>ff", function() mini_pick.builtin.files({ tool = "git" }) end)
+vim.keymap.set("n", "<leader>ff", function() mini_pick.builtin.files({ tool = git.is_git_repo(".") and "git" or "fd"}) end)
 vim.keymap.set("n", "<leader>fh", ":Pick help<CR>")
-vim.keymap.set("n", "<leader>fg", function() mini_pick.builtin.grep_live({ tool = "git" }) end)
+vim.keymap.set("n", "<leader>fg", function() mini_pick.builtin.grep_live({ tool = git.is_git_repo(".") and "git" or "rg"}) end)
 
 -- Highlight on yank
 vim.api.nvim_create_autocmd('TextYankPost', {
