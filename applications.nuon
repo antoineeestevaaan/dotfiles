@@ -17,6 +17,19 @@
             { kind: "bin", path: "{{$ROOT}}/horcrux" },
         ],
     },
+
+    {
+        name: "glab",
+        kind: "curl",
+        url: "https://gitlab.com/gitlab-org/cli/-/releases/v{{$version}}/downloads/glab_{{$version}}_{{$arch}}.tar.gz",
+        variables: {
+            version : "1.72.0",
+            arch    : "linux_armv6",
+        },
+        install: [
+            { kind: "bin", path: "{{$ROOT}}/bin/glab" },
+        ],
+    },
     {
         name: "cargo",
         kind: "curl",
