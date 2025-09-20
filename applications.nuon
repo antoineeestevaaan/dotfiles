@@ -120,4 +120,13 @@
             { kind: "link", path: "{{$install_dir}} | path join bin nvim" },
         ],
     },
+    {
+        name: "bob",
+        kind: "cargo",
+        version: {
+            kind     : "git",
+            upstream : "https://github.com/MordechaiHadad/bob",
+            rev      : "b29e161b390018303b5c51ee6a1e207baddeeba9",
+        },
+    },
 ]
