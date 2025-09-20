@@ -479,3 +479,8 @@ export def "install" [
         }
     }
 }
+
+export def "test" [] {
+    print $"RUNNING TESTS for (ansi purple).config/nushell/modules/git/test.nu(ansi reset)"
+    ^$nu.current-exe .config/nushell/modules/git/test.nu
+}
