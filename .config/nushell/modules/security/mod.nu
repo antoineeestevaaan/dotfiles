@@ -104,14 +104,20 @@ export def decrypt [passphrase?: string, --armor]: [
     if ($res | is-empty) { null } else { $res }
 }
 
-export def "pass init" [] {
+def "log error" [msg: string] { print --stderr $"[(ansi red_bold)ERROR(ansi reset)]: ($msg)" }
+
+export def "pass init" [--force] {
     mkdir ($PASS_WITNESS_FILE | path dirname)
+    if ($PASS_WITNESS_FILE | path exists) and not $force {
+        log error "pass store already exists, use `pass init --force` to overwrite"
+        return
+    }
     $PASS_WITNESS | encrypt | save --force $PASS_WITNESS_FILE
 }
 
 def check-pass-store-is-init []: [ nothing -> bool ] {
     if not ($PASS_WITNESS_FILE | path exists) {
-        print $"[(ansi red_bold)ERROR(ansi reset)]: store does not exist, use `pass init` first"
+        log error "store does not exist, use `pass init` first"
         false
     } else {
         true
@@ -121,7 +127,7 @@ def check-pass-store-is-init []: [ nothing -> bool ] {
 def unlock-pass-store [passphrase: string]: [ nothing -> bool ] {
     let witness = open $PASS_WITNESS_FILE | try { decrypt $passphrase }
     if $witness == null {
-        print $"[(ansi red_bold)ERROR(ansi reset)]: could not unlock pass store \(bad key\)"
+        log error "could not unlock pass store \(bad key\)"
         false
     } else {
         true
@@ -135,7 +141,7 @@ export def "pass add" [name: string] {
     let out = { parent: $PASSHOME, stem: $name, extension: "gpg" } | path join
 
     if ($out | path exists) {
-        print $"ERROR: ($name) does exist, use `pass edit ($name)` instead"
+        log error $"($name) does exist, use `pass edit ($name)` instead"
         return
     }
 
@@ -159,7 +165,7 @@ export def "pass edit" [name: string] {
     let out = { parent: $PASSHOME, stem: $name, extension: "gpg" } | path join
 
     if not ($out | path exists) {
-        print $"($name) does not exist, use `pass add ($name)` first"
+        log error $"($name) does not exist, use `pass add ($name)` first"
         return
     }
 
@@ -199,7 +205,7 @@ export def "pass show" [name: string]: [ nothing -> string ] {
     } | path join
 
     if not ($passwd_file | path exists) {
-        print $"($name) not in pass home, use `pass list`"
+        log error $"($name) not in pass home, use `pass list`"
         return
     }
 
