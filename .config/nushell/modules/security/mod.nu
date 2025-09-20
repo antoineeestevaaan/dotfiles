@@ -52,7 +52,7 @@ export def get-pin [--pinentry: string = "tty", --prompt: string, --title: strin
         | default ""
 }
 
-const PASSHOME = "/tmp/pass"
+const PASSHOME = $nu.home-path | path join ".local/share/pass-store"
 const PASS_WITNESS_FILE = $PASSHOME | path join ".witness"
 const PASS_WITNESS = "ok"
 
