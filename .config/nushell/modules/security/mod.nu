@@ -121,7 +121,7 @@ def check-pass-store-is-init []: [ nothing -> bool ] {
 def unlock-pass-store [passphrase: string]: [ nothing -> bool ] {
     let witness = open $PASS_WITNESS_FILE | try { decrypt $passphrase }
     if $witness == null {
-        print $"[(ansi red_bold)ERROR(ansi reset)]: could not unlock pass store (bad key)"
+        print $"[(ansi red_bold)ERROR(ansi reset)]: could not unlock pass store \(bad key\)"
         false
     } else {
         true
