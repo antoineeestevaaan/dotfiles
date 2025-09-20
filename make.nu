@@ -304,6 +304,47 @@ def __git [--cp: cell-path]: [ record -> list<string> ] {
     ]
 }
 
+def __cargo [--cp: cell-path]: [ record -> list<string> ] {
+    if not ($in | check-field version --types [record] --cp $cp) { return }
+    $in | check-extra-fields [ name, kind, version ] --cp $cp
+
+    let cp_version = $cp | split cell-path | append [ "version" ] | into cell-path
+    if not ($in.version | check-field kind --types [string] --cp $cp_version) { return }
+
+    let entry = $in
+
+    [
+        ...(match $entry.version.kind {
+            "git" => {
+                if not ($entry.version | check-field upstream --types [string] --cp $cp_version) { return }
+                $entry.version | check-extra-fields [ kind, upstream, rev, branch, tag ] --cp $cp_version
+
+                let cmd = [ "cargo", "install", "--git", $entry.version.upstream ]
+                let extra_options = if $entry.version.rev? != null {
+                    [ "--rev", $entry.version.rev ]
+                } else if $entry.version.branch? != null {
+                    [ "--branch", $entry.version.branch ]
+                } else if $entry.version.tag? != null {
+                    [ "--tag", $entry.version.tag ]
+                } else {
+                    []
+                }
+                [
+                    ($cmd | append $extra_options | str join " "),
+                    ...(lock-app $entry.name [(
+                        if ($extra_options | is-empty) {
+                            $"\"cargo:git:($entry.version.upstream)\""
+                        } else {
+                            $"\"cargo:git:($entry.version.upstream)@($extra_options.1)\""
+                        }
+                    )])
+                ]
+            },
+            _ => { log warning $"unknown version kind ($entry.version.kind) at ($cp_version)"; return },
+        })
+    ]
+}
+
 def __install [vars: record, root: string, --cp: cell-path]: [ list -> list<string>, table -> list<string> ] {
     if ($in | is-empty) {
         log warning $"nothing to install at ($cp)"
@@ -408,6 +449,7 @@ export def "install" [
             "system" => { $entry.item | __system --cp $cp },
             "curl" => { $entry.item | __curl --cp $cp },
             "git" => { $entry.item | __git --cp $cp },
+            "cargo" => { $entry.item | __cargo --cp $cp },
             _ => { log warning $"unknown kind ($entry.item.kind) at ($cp)"; return },
         }
 
