@@ -142,4 +142,22 @@
             branch   : "master",
         },
     },
+    {
+        name: "alacritty",
+        kind: "cargo",
+        version: {
+            kind     : "git",
+            upstream : "https://github.com/alacritty/alacritty",
+            branch   : "master",
+        },
+        deps: [
+            # x
+            { name: "x11"           , kind: "system" , package: { apt: "libx11-dev"         } },
+            { name: "xorg"          , kind: "system" , package: { apt: "xorg"               } },
+            # alacritty
+            { name: "fontconfig"    , kind: "system" , package: { apt: "libfontconfig1-dev" } },
+            { name: "xkbcommon"     , kind: "system" , package: { apt: "libxkbcommon-dev"   } },
+            { name: "xkbcommon-x11" , kind: "system" , package: { apt: "libxkbcommon-x11-0" } },
+        ],
+    },
 ]
