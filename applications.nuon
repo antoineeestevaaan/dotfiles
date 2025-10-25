@@ -160,4 +160,19 @@
             { name: "xkbcommon-x11" , kind: "system" , package: { apt: "libxkbcommon-x11-0" } },
         ],
     },
+    {
+        name: "monaspace",
+        kind: "curl",
+        url: "https://github.com/githubnext/monaspace/releases/download/v{{$version}}/monaspace-static-v{{$version}}.zip",
+        variables: {
+            version : "1.301",
+        },
+        install: [
+            { kind: "shell", commands: [
+                "mkdir ~/.local/share/fonts",
+                "ln -s {{$ROOT}} ~/.local/share/fonts/{{$ARCHIVE}}",
+                "fc-cache -f -v",
+            ]},
+        ],
+    },
 ]
