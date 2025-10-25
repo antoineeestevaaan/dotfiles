@@ -306,7 +306,7 @@ def __git [--cp: cell-path]: [ record -> list<string> ] {
 
 def __cargo [--cp: cell-path]: [ record -> list<string> ] {
     if not ($in | check-field version --types [record] --cp $cp) { return }
-    $in | check-extra-fields [ name, kind, version ] --cp $cp
+    $in | check-extra-fields [ name, kind, version, deps ] --cp $cp
 
     let cp_version = $cp | split cell-path | append [ "version" ] | into cell-path
     if not ($in.version | check-field kind --types [string] --cp $cp_version) { return }
@@ -330,6 +330,18 @@ def __cargo [--cp: cell-path]: [ record -> list<string> ] {
                     []
                 }
                 [
+                    ...($entry.deps? | default [] | enumerate | each { |dep|
+                        let cp = $cp | split cell-path | append [ "deps" $dep.index ] | into cell-path
+
+                        if not ($dep.item | check-field kind --types [string] --cp $cp) { return }
+
+                        match $dep.item.kind {
+                            "system" => { $dep.item | __system --cp $cp },
+                            "curl" => { $dep.item | __curl --cp $cp },
+                            "git" => { $dep.item | __git --cp $cp },
+                            _ => { log warning $"unknown kind ($dep.item.kind) at ($cp)"; return },
+                        }
+                    } | flatten)
                     ($cmd | append $extra_options | str join " "),
                     ...(lock-app $entry.name [(
                         if ($extra_options | is-empty) {
