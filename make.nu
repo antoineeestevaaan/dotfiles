@@ -254,7 +254,12 @@ def __curl [--cp: cell-path]: [ record -> list<string> ] {
         ]} else {[
             ...(cmd log $"curl -fLo ($archive_path) ($entry.args | str join ' ') ($url)")
             ...(cmd log $"mkdir ($root)")
-            ...(cmd log $"tar xvf ($archive_path) --directory ($root)")
+            ...(cmd log (
+                match ($archive_path | path parse).extension {
+                    "zip" => $"unzip ($archive_path) -d ($root)",
+                    _     => $"tar xvf ($archive_path) --directory ($root)",
+                }
+            ))
         ]}),
         ...($entry.install | __install $vars $root --cp $cp)
         ...(lock-app $entry.name [ $"\"($url)\"" ])
@@ -425,6 +430,14 @@ def __install [vars: record, root: string, --cp: cell-path]: [ list -> list<stri
                     ...(cmd log $"mkdir ($OPT_DIR)"),
                     ...(cmd log $"ln --verbose --force --symbolic ($src) ($dest)"),
                 ]
+            }
+            "shell" => {
+                if not ($i.item | check-field commands --types [list] --cp $cp) { return [] }
+                $i.item | check-extra-fields [ name, kind, commands ] --cp $cp
+
+                $i.item.commands
+                    | each { cmd log ($in | expand-vars $vars --root $root) }
+                    | flatten
             }
             _ => { log warning $"unknown kind ($i.item.kind) at ($cp)"; return [] },
         }
