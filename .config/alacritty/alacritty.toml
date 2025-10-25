@@ -1,0 +1,26 @@
+[env]
+TERM = "xterm-256color"
+
+[font]
+size = 21.0
+normal = { family = "Monaspace Neon" }
+bold = { family = "Monaspace Neon" }
+italic = { family = "Monaspace Neon" }
+
+[[keyboard.bindings]]
+action = "ResetFontSize"
+key = "I"
+mods = "Alt|Control"
+
+[[keyboard.bindings]]
+action = "IncreaseFontSize"
+key = "O"
+mods = "Alt|Control"
+
+[[keyboard.bindings]]
+action = "DecreaseFontSize"
+key = "U"
+mods = "Alt|Control"
+
+[window]
+padding = { x = 0, y = 0 }
